@@ -122,7 +122,7 @@ async def start_pm(client, message: Message, _):
     
     # --- REACTION START ---
     try:
-        await message.react(emoji="😘")
+        await message.react(emoji="❤️")
     except Exception:
         pass
     # --- REACTION END ---
@@ -138,11 +138,11 @@ async def start_pm(client, message: Message, _):
     await asyncio.sleep(0.1)
     await loading_1.edit_text("<b>ᴅɪηɢ ᴅᴏηɢ...❤️‍🔥</b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>ʜɪηᴧᴛᴧ </b>")
+    await loading_1.edit_text("<b>ʀᴧᴅʜᴧ </b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>ʜɪηᴧᴛᴧ 𝘹</b>")
+    await loading_1.edit_text("<b>ʀᴧᴅʜᴧ 𝘹</b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>ʜɪηᴧᴛᴧ 𝘹 ᴍᴜsɪᴄ ♪</b>")
+    await loading_1.edit_text("<b>ʀᴧᴅʜᴧ 𝘹 ᴍᴜsɪᴄ ♪</b>")
     await asyncio.sleep(0.1)
     await loading_1.edit_text("<b>sᴛᴧʀᴛᴇᴅ!🥀</b>")
     await asyncio.sleep(0.1)
@@ -233,7 +233,7 @@ async def start_pm(client, message: Message, _):
 async def start_gp(client, message: Message, _):
     # --- REACTION START ---
     try:
-        await message.react(emoji="😘")
+        await message.react(emoji="❤️")
     except Exception:
         pass
     # --- REACTION END ---
