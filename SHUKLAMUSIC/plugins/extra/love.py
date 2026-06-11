@@ -15,6 +15,21 @@ from pyrogram import Client, filters
 import random
 from SHUKLAMUSIC import app
 
+# ── AttractivePack emoji IDs ──
+_AP_PINK   = 5208942800514596941   # 🩷
+_AP_LOVE   = 5220157149103023925   # 💖
+_AP_LILAC  = 5366119022792294762   # 💜
+_AP_FLOWER = 5366458509892276868   # 🌸
+_AP_STAR   = 5413351005779672594   # ⭐
+_AP_BOW    = 5379869575338812919   # 🎀
+_AP_YELLOW = 5363897614167199267   # 💛
+_AP_GREEN  = 5366596996817766990   # 💚
+_AP_ORANGE = 5366238787955347845   # 🧡
+_AP_BLUE   = 5379853726909486003   # 💙
+
+def ap(eid, fb):
+    return f'<emoji id={eid}>{fb}</emoji>'
+
 def get_random_message(love_percentage):
     if love_percentage <= 30:
         return random.choice([
@@ -45,7 +60,19 @@ def love_command(client, message):
         love_percentage = random.randint(10, 100)
         love_message = get_random_message(love_percentage)
 
-        response = f"{name1}💕 + {name2}💕 = {love_percentage}%\n\n{love_message}"
+        hearts = [
+            ap(_AP_PINK,'🩷'), ap(_AP_LOVE,'💖'), ap(_AP_LILAC,'💜'),
+            ap(_AP_BLUE,'💙'), ap(_AP_YELLOW,'💛'), ap(_AP_GREEN,'💚'),
+            ap(_AP_ORANGE,'🧡'), ap(_AP_FLOWER,'🌸'),
+        ]
+        heart_bar = " ".join(hearts[:min(max(1, love_percentage // 13), 8)])
+        response = (
+            f"{ap(_AP_LOVE,'💖')} <b>ʟᴏᴠᴇ ᴄᴀʟᴄᴜʟᴀᴛᴏʀ</b> {ap(_AP_LOVE,'💖')}\n\n"
+            f"{ap(_AP_PINK,'🩷')} <b>{name1}</b> + <b>{name2}</b>\n\n"
+            f"{ap(_AP_STAR,'⭐')} <b>ᴄᴏᴍᴘᴀᴛɪʙɪʟɪᴛʏ :</b> <code>{love_percentage}%</code>\n"
+            f"{ap(_AP_FLOWER,'🌸')} {heart_bar}\n\n"
+            f"{ap(_AP_BOW,'🎀')} <i>{love_message}</i>"
+        )
     else:
-        response = "Please enter two names after /love command."
+        response = f"{ap(_AP_PINK,'🩷')} <b>ᴜsᴀɢᴇ :</b> <code>/love Name1 Name2</code>"
     app.send_message(message.chat.id, response)
