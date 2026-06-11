@@ -92,7 +92,16 @@ votemode = {}
 autoclean = []
 confirmer = {}
 
+# Debugging
+DEBUG_IGNORE_LOG = getenv("DEBUG_IGNORE_LOG", "False").lower() == "true"
+
+# Additional group/channel IDs
+LOG_GROUP_ID = int(getenv("LOG_GROUP_ID", getenv("LOGGER_ID", "0")))
+SUPPORT_GROUP = getenv("SUPPORT_GROUP", SUPPORT_CHAT)
+
 # Image URLs
+SHASHANK_IMG = getenv("SHASHANK_IMG", "https://files.catbox.moe/5go4t6.jpg").split(",") if "," in getenv("SHASHANK_IMG", "") else [getenv("SHASHANK_IMG", "https://files.catbox.moe/5go4t6.jpg")]
+
 START_IMG_URL = getenv("START_IMG_URL", "https://files.catbox.moe/5go4t6.jpg")
 PING_IMG_URL = getenv("PING_IMG_URL", "https://files.catbox.moe/ohezme.jpg")
 PLAYLIST_IMG_URL = "https://files.catbox.moe/ohezme.jpg"

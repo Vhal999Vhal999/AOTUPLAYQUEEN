@@ -1,0 +1,65 @@
+[11-Jun-26 05:53:41 - INFO] - SHUKLAMUSIC.core.mongo - Connecting to your Mongo Database...
+[11-Jun-26 05:53:41 - INFO] - SHUKLAMUSIC.core.mongo - Connected to your Mongo Database.
+[11-Jun-26 05:53:41 - INFO] - SHUKLAMUSIC.core.dir - Directories Updated.
+[11-Jun-26 05:53:41 - INFO] - SHUKLAMUSIC.core.git - Git Client Found [VPS DEPLOYER]
+[11-Jun-26 05:53:41 - INFO] - SHUKLAMUSIC.misc - 𝗗𝗔𝗧𝗔𝗕𝗔𝗦𝗘 𝗟𝗢𝗔𝗗 𝗕𝗔𝗕𝗬🍫........
+[11-Jun-26 05:53:41 - INFO] - SHUKLAMUSIC.core.bot - Starting Bot...
+[11-Jun-26 05:54:14 - INFO] - SHUKLAMUSIC.core.mongo - Connecting to your Mongo Database...
+[11-Jun-26 05:54:14 - INFO] - SHUKLAMUSIC.core.mongo - Connected to your Mongo Database.
+[11-Jun-26 05:54:14 - INFO] - SHUKLAMUSIC.core.dir - Directories Updated.
+[11-Jun-26 05:54:14 - INFO] - SHUKLAMUSIC.core.git - Git Client Found [VPS DEPLOYER]
+[11-Jun-26 05:54:14 - INFO] - SHUKLAMUSIC.misc - 𝗗𝗔𝗧𝗔𝗕𝗔𝗦𝗘 𝗟𝗢𝗔𝗗 𝗕𝗔𝗕𝗬🍫........
+[11-Jun-26 05:54:14 - INFO] - SHUKLAMUSIC.core.bot - Starting Bot...
+[11-Jun-26 05:54:16 - INFO] - SHUKLAMUSIC.misc - 𝗦𝗨𝗗𝗢 𝗨𝗦𝗘𝗥 𝗗𝗢𝗡𝗘✨🎋.
+[11-Jun-26 05:54:23 - INFO] - SHUKLAMUSIC.core.bot - Music Bot Started Successfully as ˹ 𝐑ᴀᴅʜᴀ ꭙ 𝐌ᴜꜱɪᴄ ♪˼ [ ɴᴏ ᴀᴅs ]
+[11-Jun-26 05:55:46 - INFO] - SHUKLAMUSIC.core.mongo - Connecting to your Mongo Database...
+[11-Jun-26 05:55:46 - INFO] - SHUKLAMUSIC.core.mongo - Connected to your Mongo Database.
+[11-Jun-26 05:55:46 - INFO] - SHUKLAMUSIC.core.dir - Directories Updated.
+[11-Jun-26 05:55:46 - INFO] - SHUKLAMUSIC.core.git - Git Client Found [VPS DEPLOYER]
+[11-Jun-26 05:55:46 - INFO] - SHUKLAMUSIC.misc - 𝗗𝗔𝗧𝗔𝗕𝗔𝗦𝗘 𝗟𝗢𝗔𝗗 𝗕𝗔𝗕𝗬🍫........
+[11-Jun-26 05:55:46 - INFO] - SHUKLAMUSIC.core.bot - Starting Bot...
+[11-Jun-26 05:55:48 - INFO] - SHUKLAMUSIC.misc - 𝗦𝗨𝗗𝗢 𝗨𝗦𝗘𝗥 𝗗𝗢𝗡𝗘✨🎋.
+[11-Jun-26 05:55:55 - INFO] - SHUKLAMUSIC.core.bot - Music Bot Started Successfully as ˹ 𝐑ᴀᴅʜᴀ ꭙ 𝐌ᴜꜱɪᴄ ♪˼ [ ɴᴏ ᴀᴅs ]
+[11-Jun-26 05:55:56 - INFO] - apscheduler.scheduler - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[11-Jun-26 05:55:56 - INFO] - apscheduler.scheduler - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[11-Jun-26 05:55:56 - INFO] - apscheduler.scheduler - Added job "start_nightmode" to job store "default"
+[11-Jun-26 05:55:56 - INFO] - apscheduler.scheduler - Added job "close_nightmode" to job store "default"
+[11-Jun-26 05:55:56 - INFO] - apscheduler.scheduler - Scheduler started
+[11-Jun-26 05:55:57 - ERROR] - asyncio - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f655432ff20>
+[11-Jun-26 05:56:39 - INFO] - SHUKLAMUSIC.core.mongo - Connecting to your Mongo Database...
+[11-Jun-26 05:56:39 - INFO] - SHUKLAMUSIC.core.mongo - Connected to your Mongo Database.
+[11-Jun-26 05:56:39 - INFO] - SHUKLAMUSIC.core.dir - Directories Updated.
+[11-Jun-26 05:56:39 - INFO] - SHUKLAMUSIC.core.git - Git Client Found [VPS DEPLOYER]
+[11-Jun-26 05:56:39 - INFO] - SHUKLAMUSIC.misc - 𝗗𝗔𝗧𝗔𝗕𝗔𝗦𝗘 𝗟𝗢𝗔𝗗 𝗕𝗔𝗕𝗬🍫........
+[11-Jun-26 05:56:39 - INFO] - SHUKLAMUSIC.core.bot - Starting Bot...
+[11-Jun-26 05:56:41 - INFO] - SHUKLAMUSIC.misc - 𝗦𝗨𝗗𝗢 𝗨𝗦𝗘𝗥 𝗗𝗢𝗡𝗘✨🎋.
+[11-Jun-26 05:56:48 - INFO] - SHUKLAMUSIC.core.bot - Music Bot Started Successfully as ˹ 𝐑ᴀᴅʜᴀ ꭙ 𝐌ᴜꜱɪᴄ ♪˼ [ ɴᴏ ᴀᴅs ]
+[11-Jun-26 05:56:48 - INFO] - apscheduler.scheduler - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[11-Jun-26 05:56:48 - INFO] - apscheduler.scheduler - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[11-Jun-26 05:56:48 - INFO] - apscheduler.scheduler - Added job "start_nightmode" to job store "default"
+[11-Jun-26 05:56:48 - INFO] - apscheduler.scheduler - Added job "close_nightmode" to job store "default"
+[11-Jun-26 05:56:48 - INFO] - apscheduler.scheduler - Scheduler started
+[11-Jun-26 05:56:49 - ERROR] - asyncio - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x7f0f09570440>
+[11-Jun-26 05:58:21 - INFO] - SHUKLAMUSIC.core.mongo - Connecting to your Mongo Database...
+[11-Jun-26 05:58:21 - INFO] - SHUKLAMUSIC.core.mongo - Connected to your Mongo Database.
+[11-Jun-26 05:58:21 - INFO] - SHUKLAMUSIC.core.dir - Directories Updated.
+[11-Jun-26 05:58:21 - INFO] - SHUKLAMUSIC.core.git - Git Client Found [VPS DEPLOYER]
+[11-Jun-26 05:58:21 - INFO] - SHUKLAMUSIC.misc - 𝗗𝗔𝗧𝗔𝗕𝗔𝗦𝗘 𝗟𝗢𝗔𝗗 𝗕𝗔𝗕𝗬🍫........
+[11-Jun-26 05:58:21 - INFO] - SHUKLAMUSIC.core.bot - Starting Bot...
+[11-Jun-26 05:58:22 - INFO] - SHUKLAMUSIC.misc - 𝗦𝗨𝗗𝗢 𝗨𝗦𝗘𝗥 𝗗𝗢𝗡𝗘✨🎋.
+[11-Jun-26 05:58:31 - INFO] - SHUKLAMUSIC.core.bot - Music Bot Started Successfully as ˹ 𝐑ᴀᴅʜᴀ ꭙ 𝐌ᴜꜱɪᴄ ♪˼ [ ɴᴏ ᴀᴅs ]
+[11-Jun-26 05:58:31 - INFO] - apscheduler.scheduler - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[11-Jun-26 05:58:31 - INFO] - apscheduler.scheduler - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+[11-Jun-26 05:58:31 - INFO] - apscheduler.scheduler - Added job "start_nightmode" to job store "default"
+[11-Jun-26 05:58:31 - INFO] - apscheduler.scheduler - Added job "close_nightmode" to job store "default"
+[11-Jun-26 05:58:31 - INFO] - apscheduler.scheduler - Scheduler started
+[11-Jun-26 05:58:31 - INFO] - SHUKLAMUSIC.plugins - 𝐀𝐥𝐥 𝐅𝐞𝐚𝐭𝐮𝐫𝐞𝐬 𝐋𝐨𝐚𝐝𝐞𝐝 𝐁𝐚𝐛𝐲🥳...
+[11-Jun-26 05:58:31 - INFO] - SHUKLAMUSIC.core.userbot - Starting Assistants...
+[11-Jun-26 05:58:32 - INFO] - SHUKLAMUSIC.core.userbot - Assistant Started as <a href=tg://user?id=6670240589>🍹𝆺𝅥⃝🤍 ‌‌ ●🇷 🇦 🇩 🇭 🇦 🇦 🇸 🇸 🇮 T🇦 🇳 T🤍𝆺꯭𝅥⎯꯭‌⎯꯭</a>
+[11-Jun-26 05:58:32 - INFO] - SHUKLAMUSIC.core.call - Starting PyTgCalls Client...
+
+[11-Jun-26 05:58:49 - INFO] - SHUKLAMUSIC - ╔═════ஜ۩۞۩ஜ════╗
+  ☠︎︎𝗠𝗔𝗗𝗘 𝗕𝗬 𝗠𝗥 𝗦𝗛𝗜𝗩𝗔𝗡𝗦𝗛
+╚═════ஜ۩۞۩ஜ════╝
