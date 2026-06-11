@@ -27,11 +27,11 @@ async def brah2(_, msg):
        await msg.reply("**ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ᴇɴᴅᴇᴅ**")
 
 # invite members on vc
-@app.on_message(filters.video_chat_members_invited)
+@app.on_message(filters.video_chat_participants_invited)
 async def brah3(app :app, message:Message):
            text = f"{message.from_user.mention} ɪɴᴠɪᴛᴇᴅ "
            x = 0
-           for user in message.video_chat_members_invited.users:
+           for user in message.video_chat_participants_invited.users:
              try:
                text += f"[{user.first_name}](tg://user?id={user.id}) "
                x += 1
