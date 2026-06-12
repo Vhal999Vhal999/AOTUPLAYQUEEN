@@ -16,6 +16,13 @@ from pyrogram import filters,enums
 from pyrogram.types import ChatPermissions 
 from SHUKLAMUSIC.utils.Shukla_ban import admin_filter
 
+# ── KripanshEmojis_by_fStikBot pack IDs ──
+_KE_OK   = 6129812419028982717   # ✅
+_KE_WARN = 6129782440157256336   # ⚠️
+
+def ke(eid, fb):
+    return f'<emoji id={eid}>{fb}</emoji>'
+
 @app.on_message(filters.command("unmuteall") & admin_filter)
 async def unmute_all(_,msg):
     chat_id=msg.chat.id   
@@ -35,4 +42,4 @@ async def unmute_all(_,msg):
             except Exception as e:
                 print(e)
     else:
-        await msg.reply_text("ᴇɪᴛʜᴇʀ ɪ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴛʜᴇ ʀɪɢʜᴛ ᴛᴏ ʀᴇsᴛʀɪᴄᴛ ᴜsᴇʀs ᴏʀ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ɪɴ sᴜᴅᴏ ᴜsᴇʀs")
+        await msg.reply_text(f"{ke(_KE_WARN,'⚠️')} <b>ᴇɪᴛʜᴇʀ ɪ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴛʜᴇ ʀɪɢʜᴛ ᴛᴏ ʀᴇsᴛʀɪᴄᴛ ᴜsᴇʀs ᴏʀ ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ɪɴ sᴜᴅᴏ ᴜsᴇʀs</b>")
