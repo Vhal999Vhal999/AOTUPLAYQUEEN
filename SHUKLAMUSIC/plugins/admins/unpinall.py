@@ -25,6 +25,16 @@ from pyrogram.errors.exceptions.bad_request_400 import (
 import datetime
 from SHUKLAMUSIC import app
 
+# ── KripanshEmojis_by_fStikBot pack IDs ──
+_KE_OK    = 6129812419028982717   # ✅
+_KE_WARN  = 6129782440157256336   # ⚠️
+_KE_CROWN = 6129705083501293112   # 👑
+_KE_BLOCK = 6129840374971112593   # 🚫
+_KE_FIRE  = 6129792056589031358   # 🔥
+
+def ke(eid, fb):
+    return f'<emoji id={eid}>{fb}</emoji>'
+
 
 @app.on_callback_query(filters.regex(r"^unpin"))
 async def unpin_callbacc(client, CallbackQuery):
@@ -36,10 +46,10 @@ async def unpin_callbacc(client, CallbackQuery):
         if member.privileges.can_pin_messages:
             pass
         else:
-            await CallbackQuery.answer("You dont have rights, baka!", show_alert=True)
+            await CallbackQuery.answer("⚠️ You dont have rights, baka!", show_alert=True)
             return
     else:
-        await CallbackQuery.answer("You dont have rights, baka!", show_alert=True)
+        await CallbackQuery.answer("⚠️ You dont have rights, baka!", show_alert=True)
         return
     
     msg_id = CallbackQuery.data.split("=")[1]
@@ -83,14 +93,12 @@ async def unpin_command_handler(client, message):
         if member.privileges.can_pin_messages:
             pass
         else:
-            msg_text = "Yᴏᴜ ᴅᴏɴᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴜɴᴘɪɴ sᴏᴍᴇᴛʜɪɴɢ"
-            return await message.reply_text(msg_text)
+            return await message.reply_text(f"{ke(_KE_BLOCK,'🚫')} <b>ʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴜɴᴘɪɴ sᴏᴍᴇᴛʜɪɴɢ</b>")
     else:
-        msg_text = "Yᴏᴜ ᴅᴏɴᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴜɴᴘɪɴ sᴏᴍᴇᴛʜɪɴɢ"
-        return await message.reply_text(msg_text)
-    
+        return await message.reply_text(f"{ke(_KE_BLOCK,'🚫')} <b>ʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴜɴᴘɪɴ sᴏᴍᴇᴛʜɪɴɢ</b>")
+
     await message.reply_text(
-        "**Aʀᴇ ʏᴏᴜ sᴜʀᴇ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴜɴᴘɪɴ ᴀʟʟ ᴛʜᴇ ᴘɪɴɴᴇᴅ ᴍᴇssᴀɢᴇs ɪɴ ᴛʜɪs ᴄʜᴀᴛ??**",
+        f"{ke(_KE_WARN,'⚠️')} {ke(_KE_FIRE,'🔥')} <b>ᴀʀᴇ ʏᴏᴜ sᴜʀᴇ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴜɴᴘɪɴ ᴀʟʟ ᴛʜᴇ ᴘɪɴɴᴇᴅ ᴍᴇssᴀɢᴇs ɪɴ ᴛʜɪs ᴄʜᴀᴛ?</b>",
         reply_markup=InlineKeyboardMarkup(
             [   
                 [
