@@ -20,6 +20,17 @@ import random
 import re
 from SHUKLAMUSIC import app
 
+# ── KripanshEmojis_by_fStikBot pack IDs ──
+_KE_OK    = 6129812419028982717   # ✅
+_KE_WARN  = 6129782440157256336   # ⚠️
+_KE_CROWN = 6129705083501293112   # 👑
+_KE_FIRE  = 6129792056589031358   # 🔥
+_KE_BLOCK = 6129840374971112593   # 🚫
+_KE_STAR  = 6129915811776698328   # 🌟
+
+def ke(eid, fb):
+    return f'<emoji id={eid}>{fb}</emoji>'
+
 SPAM_CHATS = []
 EMOJI = [
     "🦋🦋🦋🦋🦋",
@@ -149,18 +160,18 @@ async def process_members(chat_id, members, text=None, replied=None):
 async def tag_all_users(_, message):
     admin = await is_admin(message.chat.id, message.from_user.id)
     if not admin:
-        return await message.reply_text("Only admins can use this command.")
+        return await message.reply_text(f"{ke(_KE_BLOCK,'🚫')} <b>ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ</b>")
 
-    if message.chat.id in SPAM_CHATS:  
-        return await message.reply_text(  
-            "Tagging process is already running. Use /cancel to stop it."  
-        )  
-    
-    replied = message.reply_to_message  
-    if len(message.command) < 2 and not replied:  
-        return await message.reply_text(  
-            "Give some text to tag all, like: `@all Hi Friends`"  
-        )  
+    if message.chat.id in SPAM_CHATS:
+        return await message.reply_text(
+            f"{ke(_KE_WARN,'⚠️')} <b>ᴛᴀɢɢɪɴɢ ᴘʀᴏᴄᴇss ɪs ᴀʟʀᴇᴀᴅʏ ʀᴜɴɴɪɴɢ.</b> ᴜsᴇ /cancel ᴛᴏ sᴛᴏᴘ ɪᴛ."
+        )
+
+    replied = message.reply_to_message
+    if len(message.command) < 2 and not replied:
+        return await message.reply_text(
+            f"{ke(_KE_CROWN,'👑')} <b>ɢɪᴠᴇ sᴏᴍᴇ ᴛᴇxᴛ ᴛᴏ ᴛᴀɢ ᴀʟʟ, ʟɪᴋᴇ:</b> <code>@all Hi Friends</code>"
+        )
     
     try:  
         # Get all members at once to avoid multiple iterations
@@ -182,12 +193,11 @@ async def tag_all_users(_, message):
             replied=replied
         )
         
-        summary_msg = f"""
-✅ Tagging completed!
-
-Total members: {total_members}
-Tagged members: {tagged_members}
-"""
+        summary_msg = (
+            f"{ke(_KE_OK,'✅')} {ke(_KE_STAR,'🌟')} <b>ᴛᴀɢɢɪɴɢ ᴄᴏᴍᴘʟᴇᴛᴇᴅ!</b>\n\n"
+            f"{ke(_KE_CROWN,'👑')} <b>ᴛᴏᴛᴀʟ ᴍᴇᴍʙᴇʀs :</b> <code>{total_members}</code>\n"
+            f"{ke(_KE_FIRE,'🔥')} <b>ᴛᴀɢɢᴇᴅ ᴍᴇᴍʙᴇʀs :</b> <code>{tagged_members}</code>"
+        )
         await app.send_message(message.chat.id, summary_msg)
 
     except FloodWait as e:  
@@ -208,18 +218,18 @@ async def tag_all_admins(_, message):
         return
 
     admin = await is_admin(message.chat.id, message.from_user.id)  
-    if not admin:  
-        return await message.reply_text("Only admins can use this command.")  
+    if not admin:
+        return await message.reply_text(f"{ke(_KE_BLOCK,'🚫')} <b>ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ</b>")
 
-    if message.chat.id in SPAM_CHATS:  
-        return await message.reply_text(  
-            "Tagging process is already running. Use /cancel to stop it."  
-        )  
-    
-    replied = message.reply_to_message  
-    if len(message.command) < 2 and not replied:  
-        return await message.reply_text(  
-            "Give some text to tag admins, like: `@admins Hi Friends`"  
+    if message.chat.id in SPAM_CHATS:
+        return await message.reply_text(
+            f"{ke(_KE_WARN,'⚠️')} <b>ᴛᴀɢɢɪɴɢ ᴘʀᴏᴄᴇss ɪs ᴀʟʀᴇᴀᴅʏ ʀᴜɴɴɪɴɢ.</b> ᴜsᴇ /cancel ᴛᴏ sᴛᴏᴘ ɪᴛ."
+        )
+
+    replied = message.reply_to_message
+    if len(message.command) < 2 and not replied:
+        return await message.reply_text(
+            f"{ke(_KE_CROWN,'👑')} <b>ɢɪᴠᴇ sᴏᴍᴇ ᴛᴇxᴛ ᴛᴏ ᴛᴀɢ ᴀᴅᴍɪɴs, ʟɪᴋᴇ:</b> <code>@admins Hi Friends</code>"
         )  
     
     try:  
@@ -244,12 +254,11 @@ async def tag_all_admins(_, message):
             replied=replied
         )
         
-        summary_msg = f"""
-✅ Admin tagging completed!
-
-Total admins: {total_admins}
-Tagged admins: {tagged_admins}
-"""
+        summary_msg = (
+            f"{ke(_KE_OK,'✅')} {ke(_KE_STAR,'🌟')} <b>ᴀᴅᴍɪɴ ᴛᴀɢɢɪɴɢ ᴄᴏᴍᴘʟᴇᴛᴇᴅ!</b>\n\n"
+            f"{ke(_KE_CROWN,'👑')} <b>ᴛᴏᴛᴀʟ ᴀᴅᴍɪɴs :</b> <code>{total_admins}</code>\n"
+            f"{ke(_KE_FIRE,'🔥')} <b>ᴛᴀɢɢᴇᴅ ᴀᴅᴍɪɴs :</b> <code>{tagged_admins}</code>"
+        )
         await app.send_message(message.chat.id, summary_msg)
 
     except FloodWait as e:  
@@ -279,13 +288,13 @@ async def cancelcmd(_, message):
     chat_id = message.chat.id
     admin = await is_admin(chat_id, message.from_user.id)
     if not admin:
-        return await message.reply_text("Only admins can use this command.")
+        return await message.reply_text(f"{ke(_KE_BLOCK,'🚫')} <b>ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴜsᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ</b>")
 
-    if chat_id in SPAM_CHATS:  
-        try:  
-            SPAM_CHATS.remove(chat_id)  
-        except Exception:  
-            pass  
-        return await message.reply_text("Tagging process successfully stopped!")  
-    else:  
-        return await message.reply_text("No tagging process is currently running!")
+    if chat_id in SPAM_CHATS:
+        try:
+            SPAM_CHATS.remove(chat_id)
+        except Exception:
+            pass
+        return await message.reply_text(f"{ke(_KE_OK,'✅')} <b>ᴛᴀɢɢɪɴɢ ᴘʀᴏᴄᴇss sᴜᴄᴄᴇssғᴜʟʟʏ sᴛᴏᴘᴘᴇᴅ!</b>")
+    else:
+        return await message.reply_text(f"{ke(_KE_WARN,'⚠️')} <b>ɴᴏ ᴛᴀɢɢɪɴɢ ᴘʀᴏᴄᴇss ɪs ᴄᴜʀʀᴇɴᴛʟʏ ʀᴜɴɴɪɴɢ!</b>")
