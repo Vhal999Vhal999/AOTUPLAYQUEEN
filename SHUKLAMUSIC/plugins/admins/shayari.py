@@ -19,6 +19,16 @@ from pyrogram.enums import ChatType, ChatMemberStatus
 from pyrogram.errors import UserNotParticipant
 from pyrogram.types import ChatPermissions
 
+# ── KripanshEmojis_by_fStikBot pack IDs ──
+_KE_OK    = 6129812419028982717   # ✅
+_KE_WARN  = 6129782440157256336   # ⚠️
+_KE_CROWN = 6129705083501293112   # 👑
+_KE_BLOCK = 6129840374971112593   # 🚫
+_KE_STAR  = 6129915811776698328   # 🌟
+
+def ke(eid, fb):
+    return f'<emoji id={eid}>{fb}</emoji>'
+
 spam_chats = []
 
 EMOJI = [ "🦋🦋🦋🦋🦋",
@@ -110,7 +120,7 @@ SHAYRI = [ " 🌺**बहुत अच्छा लगता है तुझे
 async def mentionall(client, message):
     chat_id = message.chat.id
     if message.chat.type == ChatType.PRIVATE:
-        return await message.reply("𝐓𝐡𝐢𝐬 𝐂𝐨𝐦𝐦𝐚𝐧𝐝 𝐎𝐧𝐥𝐲 𝐅𝐨𝐫 𝐆𝐫𝐨𝐮𝐩𝐬.")
+        return await message.reply(f"{ke(_KE_WARN,'⚠️')} <b>ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴏɴʟʏ ғᴏʀ ɢʀᴏᴜᴘs</b>")
 
     is_admin = False
     try:
@@ -124,10 +134,10 @@ async def mentionall(client, message):
         ):
             is_admin = True
     if not is_admin:
-        return await message.reply("𝐘𝐨𝐮 𝐀𝐫𝐞 𝐍𝐨𝐭 𝐀𝐝𝐦𝐢𝐧 𝐁𝐚𝐛𝐲, 𝐎𝐧𝐥𝐲 𝐀𝐝𝐦𝐢𝐧𝐬 𝐂𝐚𝐧 . ")
+        return await message.reply(f"{ke(_KE_BLOCK,'🚫')} <b>ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀᴅᴍɪɴ ʙᴀʙʏ, ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴜsᴇ ᴛʜɪs</b>")
 
     if message.reply_to_message and message.text:
-        return await message.reply("/shayaril  𝐓𝐲𝐩𝐞 𝐋𝐢𝐤𝐞 𝐓𝐡𝐢𝐬 / 𝐑𝐞𝐩𝐥𝐲 𝐀𝐧𝐲 𝐌𝐞𝐬𝐬𝐚𝐠𝐞 𝐍𝐞𝐱𝐭 𝐓𝐢𝐦𝐞 ")
+        return await message.reply(f"{ke(_KE_CROWN,'👑')} <b>ᴜsᴀɢᴇ:</b> /shayari ᴛᴇxᴛ — ᴏʀ ʀᴇᴘʟʏ ᴀɴʏ ᴍᴇssᴀɢᴇ")
     elif message.text:
         mode = "text_on_cmd"
         msg = message.text
@@ -135,11 +145,11 @@ async def mentionall(client, message):
         mode = "text_on_reply"
         msg = message.reply_to_message
         if not msg:
-            return await message.reply("/shayari  𝐓𝐲𝐩𝐞 𝐋𝐢𝐤𝐞 𝐓𝐡𝐢𝐬 / 𝐑𝐞𝐩𝐥𝐲 𝐀𝐧𝐲 𝐌𝐞𝐬𝐬𝐚𝐠𝐞 𝐍𝐞𝐱𝐭 𝐓𝐢𝐦𝐞 ...")
+            return await message.reply(f"{ke(_KE_CROWN,'👑')} <b>ᴜsᴀɢᴇ:</b> /shayari ᴛᴇxᴛ — ᴏʀ ʀᴇᴘʟʏ ᴀɴʏ ᴍᴇssᴀɢᴇ")
     else:
-        return await message.reply("/shayari  𝐓𝐲𝐩𝐞 𝐋𝐢𝐤𝐞 𝐓𝐡𝐢𝐬 / 𝐑𝐞𝐩𝐥𝐲 𝐀𝐧𝐲 𝐌𝐞𝐬𝐬𝐚𝐠𝐞 𝐍𝐞𝐱𝐭 𝐓𝐢𝐦𝐞 ..")
+        return await message.reply(f"{ke(_KE_CROWN,'👑')} <b>ᴜsᴀɢᴇ:</b> /shayari ᴛᴇxᴛ — ᴏʀ ʀᴇᴘʟʏ ᴀɴʏ ᴍᴇssᴀɢᴇ")
     if chat_id in spam_chats:
-        return await message.reply("𝐏𝐥𝐞𝐚𝐬𝐞 𝐀𝐭 𝐅𝐢𝐫𝐬𝐭 𝐒𝐭𝐨𝐩 𝐑𝐮𝐧𝐧𝐢𝐧𝐠 𝐏𝐫𝐨𝐜𝐞𝐬𝐬 ...")
+        return await message.reply(f"{ke(_KE_WARN,'⚠️')} <b>ᴘʟᴇᴀsᴇ sᴛᴏᴘ ʀᴜɴɴɪɴɢ ᴘʀᴏᴄᴇss ғɪʀsᴛ...</b>")
     spam_chats.append(chat_id)
     usrnum = 0
     usrtxt = ""
@@ -171,7 +181,7 @@ async def mentionall(client, message):
 @app.on_message(filters.command(["shstop", "shayarioff"]))
 async def cancel_spam(client, message):
     if not message.chat.id in spam_chats:
-        return await message.reply("𝐂𝐮𝐫𝐫𝐞𝐧𝐭𝐥𝐲 𝐈'𝐦 𝐍𝐨𝐭 ..")
+        return await message.reply(f"{ke(_KE_WARN,'⚠️')} <b>ᴄᴜʀʀᴇɴᴛʟʏ ɪ'ᴍ ɴᴏᴛ ʀᴜɴɴɪɴɢ</b>")
     is_admin = False
     try:
         participant = await client.get_chat_member(message.chat.id, message.from_user.id)
@@ -184,10 +194,10 @@ async def cancel_spam(client, message):
         ):
             is_admin = True
     if not is_admin:
-        return await message.reply("𝐘𝐨𝐮 𝐀𝐫𝐞 𝐍𝐨𝐭 𝐀𝐝𝐦𝐢𝐧 𝐁𝐚𝐛𝐲, 𝐎𝐧𝐥𝐲 𝐀𝐝𝐦𝐢𝐧𝐬 𝐂𝐚𝐧 𝐓𝐚𝐠 𝐌𝐞𝐦𝐛𝐞𝐫𝐬.")
+        return await message.reply(f"{ke(_KE_BLOCK,'🚫')} <b>ʏᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴀᴅᴍɪɴ ʙᴀʙʏ, ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ sᴛᴏᴘ ᴛʜɪs</b>")
     else:
         try:
             spam_chats.remove(message.chat.id)
         except:
             pass
-        return await message.reply("♦ OFFFFFFFFF♦")
+        return await message.reply(f"{ke(_KE_OK,'✅')} {ke(_KE_STAR,'🌟')} <b>sʜᴀʏᴀʀɪ ᴘʀᴏᴄᴇss sᴛᴏᴘᴘᴇᴅ!</b>")
