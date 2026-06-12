@@ -15,6 +15,7 @@
 aiofiles
 aiohttp
 apscheduler
+youtube-search
 beautifulsoup4
 cloudscraper
 dnspython
