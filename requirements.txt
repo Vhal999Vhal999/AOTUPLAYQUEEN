@@ -67,5 +67,5 @@ unidecode
 wget
 yt-dlp
 py-yt
-uvloop
+
 
