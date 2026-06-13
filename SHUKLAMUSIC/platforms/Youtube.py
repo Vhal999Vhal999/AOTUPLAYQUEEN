@@ -13,6 +13,11 @@ import yt_dlp
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
 from py_yt import VideosSearch, Playlist
+import aiohttp
+
+API_URL = os.environ.get("API_URL", "https://api.shrutibots.site")
+
+API_KEY = os.environ.get("API_KEY", "ShrutiBotsTOvWidUeX1s5mLEjEILF") ## Get This API KEY FROM: @SHRUTIAPIBOT 
 
 DOWNLOAD_DIR = "downloads"
 
@@ -32,17 +37,18 @@ async def download_song(link: str) -> str:
     if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
         return file_path
 
-    url = f"https://www.youtube.com/watch?v={video_id}" if len(video_id) == 11 and "http" not in video_id else link
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": os.path.join(DOWNLOAD_DIR, f"{video_id}.%(ext)s"),
-        "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": "mp3"}],
-        "quiet": True,
-        "no_warnings": True,
-    }
     try:
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, lambda: yt_dlp.YoutubeDL(ydl_opts).download([url]))
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"{API_URL}/download",
+                params={"url": video_id, "type": "audio", "api_key": API_KEY},
+                timeout=aiohttp.ClientTimeout(total=300)
+            ) as resp:
+                if resp.status != 200:
+                    return None
+                with open(file_path, "wb") as f:
+                    async for chunk in resp.content.iter_chunked(131072):
+                        f.write(chunk)
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
             return file_path
         return None
@@ -65,16 +71,18 @@ async def download_video(link: str) -> str:
     if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
         return file_path
 
-    url = f"https://www.youtube.com/watch?v={video_id}" if len(video_id) == 11 and "http" not in video_id else link
-    ydl_opts = {
-        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-        "outtmpl": os.path.join(DOWNLOAD_DIR, f"{video_id}.%(ext)s"),
-        "quiet": True,
-        "no_warnings": True,
-    }
     try:
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, lambda: yt_dlp.YoutubeDL(ydl_opts).download([url]))
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"{API_URL}/download",
+                params={"url": video_id, "type": "video", "api_key": API_KEY},
+                timeout=aiohttp.ClientTimeout(total=600)
+            ) as resp:
+                if resp.status != 200:
+                    return None
+                with open(file_path, "wb") as f:
+                    async for chunk in resp.content.iter_chunked(131072):
+                        f.write(chunk)
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
             return file_path
         return None
@@ -121,10 +129,8 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        loop = asyncio.get_event_loop()
         results = VideosSearch(link, limit=1)
-        data = await loop.run_in_executor(None, results.result)
-        for result in data["result"]:
+        for result in (await results.next())["result"]:
             title = result["title"]
             duration_min = result["duration"]
             thumbnail = result["thumbnails"][0]["url"].split("?")[0]
@@ -137,10 +143,8 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        loop = asyncio.get_event_loop()
         results = VideosSearch(link, limit=1)
-        data = await loop.run_in_executor(None, results.result)
-        for result in data["result"]:
+        for result in (await results.next())["result"]:
             return result["title"]
 
     async def duration(self, link: str, videoid: Union[bool, str] = None):
@@ -148,10 +152,8 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        loop = asyncio.get_event_loop()
         results = VideosSearch(link, limit=1)
-        data = await loop.run_in_executor(None, results.result)
-        for result in data["result"]:
+        for result in (await results.next())["result"]:
             return result["duration"]
 
     async def thumbnail(self, link: str, videoid: Union[bool, str] = None):
@@ -159,10 +161,8 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        loop = asyncio.get_event_loop()
         results = VideosSearch(link, limit=1)
-        data = await loop.run_in_executor(None, results.result)
-        for result in data["result"]:
+        for result in (await results.next())["result"]:
             return result["thumbnails"][0]["url"].split("?")[0]
 
     async def video(self, link: str, videoid: Union[bool, str] = None):
@@ -184,8 +184,7 @@ class YouTubeAPI:
         if "&" in link:
             link = link.split("&")[0]
         try:
-            loop = asyncio.get_event_loop()
-            plist = await loop.run_in_executor(None, lambda: Playlist.getVideos(link))
+            plist = await Playlist.get(link)
         except Exception:
             return []
         videos = plist.get("videos") or []
@@ -204,10 +203,8 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        loop = asyncio.get_event_loop()
         results = VideosSearch(link, limit=1)
-        data = await loop.run_in_executor(None, results.result)
-        for result in data["result"]:
+        for result in (await results.next())["result"]:
             title = result["title"]
             duration_min = result["duration"]
             vidid = result["id"]
@@ -254,10 +251,8 @@ class YouTubeAPI:
             link = self.base + link
         if "&" in link:
             link = link.split("&")[0]
-        loop = asyncio.get_event_loop()
         a = VideosSearch(link, limit=10)
-        data = await loop.run_in_executor(None, a.result)
-        result = data.get("result")
+        result = (await a.next()).get("result")
         title = result[query_type]["title"]
         duration_min = result[query_type]["duration"]
         vidid = result[query_type]["id"]
