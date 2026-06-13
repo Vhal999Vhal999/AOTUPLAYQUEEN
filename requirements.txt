@@ -26,6 +26,7 @@ gitpython
 gpytranslate
 groq
 gtts
+h2
 hachoir
 heroku3
 httpx
