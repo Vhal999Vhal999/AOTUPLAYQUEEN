@@ -5,7 +5,7 @@ import time
 from pyrogram import filters, enums
 from pyrogram.enums import ChatType
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, Message
-from py_yt import VideosSearch
+import yt_dlp
 
 import config
 from SHUKLAMUSIC import app
@@ -151,7 +151,7 @@ async def start_pm(client, message: Message, _):
     # --- ANIMATION START ---
     # Step 1 — Send 2 premium emojis from radhamusicbot1_by_TgEmojis_bot
     emoji_splash = await message.reply_text(
-        '<emoji id=5857183030543654930>🤩</emoji>  <emoji id=5854711294044677474>🤩</emoji>'
+        '<emoji id=5857427272448876539>🤩</emoji>  <emoji id=5854711294044677474>🤩</emoji>'
     )
     await asyncio.sleep(0.5)
     await emoji_splash.delete()
@@ -161,11 +161,11 @@ async def start_pm(client, message: Message, _):
     await add_served_user(message.from_user.id)
 
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>ᴅɪηɢ ᴅᴏηɢ.<emoji id=5854949707679276482>🤩</emoji></b>")
+    await loading_1.edit_text("<b>ᴅɪηɢ ᴅᴏηɢ.❤️‍🔥</b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>ᴅɪηɢ ᴅᴏηɢ..<emoji id=5854767077079916825>🤩</emoji></b>")
+    await loading_1.edit_text("<b>ᴅɪηɢ ᴅᴏηɢ..❤️‍🔥</b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>ᴅɪηɢ ᴅᴏηɢ...<emoji id=5854767077079916825>🤩</emoji></b>")
+    await loading_1.edit_text("<b>ᴅɪηɢ ᴅᴏηɢ...❤️‍🔥</b>")
     await asyncio.sleep(0.1)
     await loading_1.edit_text("<b>ʀᴀᴅʜᴀ</b>")
     await asyncio.sleep(0.1)
@@ -173,7 +173,7 @@ async def start_pm(client, message: Message, _):
     await asyncio.sleep(0.1)
     await loading_1.edit_text("<b>ʀᴀᴅʜᴀ ꭙ ϻᴜsɪᴄ ♪</b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>sᴛᴧʀᴛed!<emoji id=5855072204441525267>🤩</emoji></b>")
+    await loading_1.edit_text("<b>sᴛᴧʀᴛed!🥀</b>")
     await asyncio.sleep(0.1)
     await loading_1.delete()
     # --- ANIMATION END ---
@@ -194,16 +194,42 @@ async def start_pm(client, message: Message, _):
             m = await message.reply_text("🔎")
             query = str(name).replace("info_", "", 1)
             query = f"https://www.youtube.com/watch?v={query}"
-            results = VideosSearch(query, limit=1)
-            for result in (await results.next())["result"]:
-                title = result["title"]
-                duration = result["duration"]
-                views = result["viewCount"]["short"]
-                thumbnail = result["thumbnails"][0]["url"].split("?")[0]
-                channellink = result["channel"]["link"]
-                channel = result["channel"]["name"]
-                link = result["link"]
-                published = result["publishedTime"]
+            video_url = query
+            def _fetch_yt_info():
+                opts = {
+                    "quiet": True,
+                    "no_warnings": True,
+                    "skip_download": True,
+                    "noplaylist": True,
+                }
+                with yt_dlp.YoutubeDL(opts) as ydl:
+                    return ydl.extract_info(video_url, download=False) or {}
+            loop = asyncio.get_event_loop()
+            info = await loop.run_in_executor(None, _fetch_yt_info)
+            title = info.get("title") or "Unknown"
+            dur_sec = int(info.get("duration") or 0)
+            hh, rem = divmod(dur_sec, 3600)
+            mm, ss = divmod(rem, 60)
+            duration = f"{hh}:{mm:02d}:{ss:02d}" if hh else f"{mm}:{ss:02d}"
+            vc = int(info.get("view_count") or 0)
+            if vc >= 1_000_000_000:
+                views = f"{vc / 1_000_000_000:.1f}B views"
+            elif vc >= 1_000_000:
+                views = f"{vc / 1_000_000:.1f}M views"
+            elif vc >= 1_000:
+                views = f"{vc / 1_000:.1f}K views"
+            else:
+                views = f"{vc} views" if vc else "Unknown Views"
+            thumbnail = info.get("thumbnail") or ""
+            channellink = info.get("channel_url") or info.get("uploader_url") or ""
+            channel = info.get("uploader") or info.get("channel") or "Unknown"
+            link = video_url
+            ud = info.get("upload_date") or ""
+            if len(ud) == 8:
+                months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+                published = f"{ud[6:]} {months[int(ud[4:6])-1]} {ud[:4]}"
+            else:
+                published = ud or "Unknown"
             searched_text = _["start_6"].format(
                 title, duration, views, published, channellink, channel, app.mention
             )
