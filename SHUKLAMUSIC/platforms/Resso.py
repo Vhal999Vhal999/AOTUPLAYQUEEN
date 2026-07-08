@@ -15,7 +15,7 @@ import re
 from typing import Union
 import aiohttp
 from bs4 import BeautifulSoup
-from SHUKLAMUSIC.platforms.Youtube import _ytdlp_search
+from py_yt import VideosSearch
 
 
 class RessoAPI:
@@ -49,15 +49,18 @@ class RessoAPI:
                     pass
         if des == "":
             return
-        results = await _ytdlp_search(title, limit=1)
-        if not results:
-            return
-        r = results[0]
+        results = VideosSearch(title, limit=1)
+        for result in (await results.next())["result"]:
+            title = result["title"]
+            ytlink = result["link"]
+            vidid = result["id"]
+            duration_min = result["duration"]
+            thumbnail = result["thumbnails"][0]["url"].split("?")[0]
         track_details = {
-            "title": r["title"],
-            "link": r["link"],
-            "vidid": r["id"],
-            "duration_min": r["duration"],
-            "thumb": r["thumbnail"],
+            "title": title,
+            "link": ytlink,
+            "vidid": vidid,
+            "duration_min": duration_min,
+            "thumb": thumbnail,
         }
-        return track_details, r["id"]
+        return track_details, vidid
