@@ -168,3 +168,6 @@ IndexError: Replacement index 2 out of range for positional args tuple
 [09-Jul-26 11:02:10 - INFO] - SHUKLAMUSIC.core.userbot - Assistant Started as <a href=tg://user?id=8762430892>𝐌𝐎𝐇𝐈𝐓 // WINES</a>
 [09-Jul-26 11:02:10 - INFO] - SHUKLAMUSIC.core.call - Starting PyTgCalls Client...
 
+[09-Jul-26 11:02:26 - INFO] - SHUKLAMUSIC - ╔═════ஜ۩۞۩ஜ════╗
+  ☠︎︎𝗠𝗔𝗗𝗘 𝗕𝗬 𝗠𝗥 𝗦𝗛𝗜𝗩𝗔𝗡𝗦𝗛
+╚═════ஜ۩۞۩ஜ════╝
