@@ -106,7 +106,7 @@ class Call(PyTgCalls):
         combined = f"{base_flags} {ffmpeg}" if ffmpeg else base_flags
         return types.MediaStream(
             media_path=source,
-            audio_parameters=types.AudioQuality.HIGH,
+            audio_parameters=types.AudioQuality.MEDIUM,
             video_parameters=types.VideoQuality.HD_720p,
             audio_flags=types.MediaStream.Flags.REQUIRED,
             video_flags=(

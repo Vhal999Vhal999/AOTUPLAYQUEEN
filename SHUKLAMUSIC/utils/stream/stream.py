@@ -42,19 +42,6 @@ async def stream(
 ):
     if not result:
         return
-    if user_id and user_id != 0:
-        from SHUKLAMUSIC.utils.database import get_autoplay, get_autoplay_owner, set_autoplay
-        if await get_autoplay(chat_id):
-            owner = await get_autoplay_owner(chat_id)
-            if owner and owner != user_id:
-                await set_autoplay(chat_id, False)
-                try:
-                    await app.send_message(
-                        original_chat_id,
-                        f"⏹ <b>Autoplay turned off</b> — {user_name} started a new song.",
-                    )
-                except Exception:
-                    pass
     if forceplay:
         await SHUKLA.force_stop_stream(chat_id)
     if streamtype == "playlist":

@@ -113,6 +113,9 @@ async def get_thumb(videoid: str) -> str:
     except Exception:
         return YOUTUBE_IMG_URL
 
+    if not os.path.exists(thumb_path) or os.path.getsize(thumb_path) == 0:
+        return YOUTUBE_IMG_URL
+
     # Create base image
     base = Image.open(thumb_path).resize((1280, 720)).convert("RGBA")
     bg = ImageEnhance.Brightness(base.filter(ImageFilter.BoxBlur(10))).enhance(0.6)
