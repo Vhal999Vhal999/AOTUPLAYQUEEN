@@ -36,7 +36,7 @@ async def set_upi(client, message: Message):
     if len(args) < 2:
         return await message.reply_text(
             "❌ <b>Usage:</b> <code>/setupi yourupi@bank</code>\n\n"
-            "<i>Example: /setupi ragini@upi or /setupi 9876543210@paytm</i>"
+            "<i>Example: /setupi kirti@upi or /setupi 9876543210@paytm</i>"
         )
     upi_id = args[1].strip()
     if "@" not in upi_id:
