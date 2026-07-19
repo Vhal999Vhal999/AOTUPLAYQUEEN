@@ -22,7 +22,7 @@ from SHUKLAMUSIC.utils.database import booster
 
 load_dotenv()
 
-OWNERS = "6919199044"
+OWNERS = "8857291657"
 
 BOT_TOKEN = getenv("BOT_TOKEN", "")
 MONGO_DB_URI = getenv("MONGO_DB_URI", "")
