@@ -5,7 +5,7 @@ import time
 import aiofiles
 import aiohttp
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
-from py_yt import VideosSearch
+from py_yt import VideosSearch, Playlist
 from config import YOUTUBE_IMG_URL
 
 FONT_TITLE = "SHUKLAMUSIC/assets/f (1).ttf"
