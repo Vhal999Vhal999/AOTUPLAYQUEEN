@@ -50,8 +50,8 @@ UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
 GIT_TOKEN = getenv("GIT_TOKEN", None)
 
 # Support
-SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/+1NRRqUd1replNTM1")
-SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/+kHDl-CLs3oY3OWI1")
+SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/annu_updates")
+SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/annu_updates")
 
 # Assistant settings
 AUTO_LEAVING_ASSISTANT = getenv("AUTO_LEAVING_ASSISTANT", "True")
@@ -100,7 +100,7 @@ LOG_GROUP_ID = int(getenv("LOG_GROUP_ID", getenv("LOGGER_ID", "0")))
 SUPPORT_GROUP = getenv("SUPPORT_GROUP", SUPPORT_CHAT)
 
 # Image URLs
-SHASHANK_IMG = getenv("SHASHANK_IMG", "https://files.catbox.moe/5go4t6.jpg").split(",") if "," in getenv("SHASHANK_IMG", "") else [getenv("SHASHANK_IMG", "https://files.catbox.moe/5go4t6.jpg")]
+SHASHANK_IMG = getenv("SHASHANK_IMG", "https://h.uguu.se/rbricwLU.jpg").split(",") if "," in getenv("SHASHANK_IMG", "https://h.uguu.se/QaXTztiw.jpg") else [getenv("SHASHANK_IMG", "https://h.uguu.se/AQYquknW.jpg")]
 
 START_IMG_URL = getenv("START_IMG_URL", "https://files.catbox.moe/5go4t6.jpg")
 PING_IMG_URL = getenv("PING_IMG_URL", "https://files.catbox.moe/ohezme.jpg")
