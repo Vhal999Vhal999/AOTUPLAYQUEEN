@@ -183,7 +183,7 @@ python3 -m Radha
 ### 💜 Deploy to Heroku
 
 <p align="center">
-  <a href="https://dashboard.heroku.com/new?template=https://github.com/kirtibots/Annumusic">
+  <a href="https://dashboard.heroku.com/new?template=https://github.com/Vhal999Vhal999/AOTUPLAYQUEEN">
     <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy to Heroku">
   </a>
 </p>
