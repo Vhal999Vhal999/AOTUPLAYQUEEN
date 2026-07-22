@@ -86,7 +86,7 @@ def stream_markup_timer(_, chat_id, played, dur):
             InlineKeyboardButton(
                 text="ᴀᴜᴛᴏᴘʟᴀʏ",
                 callback_data=f"ADMIN Autoplay|{chat_id}",
-                icon_custom_emoji_id=6271653280187684816,
+                icon_custom_emoji_id=5247194659721090657,
                 style=ButtonStyle.PRIMARY,
             ),
         ],
