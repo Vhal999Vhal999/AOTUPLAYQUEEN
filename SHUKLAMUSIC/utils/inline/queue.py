@@ -13,6 +13,7 @@
 # -----------------------------------------------
 from typing import Union
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.enums import ButtonStyle
 from SHUKLAMUSIC import app
 
 def queue_markup(
@@ -84,10 +85,10 @@ def aq_markup(_, chat_id):
             )
         ],
         [
-            InlineKeyboardButton("⏯️", callback_data=f"ADMIN Resume|{chat_id}"),
-            InlineKeyboardButton("⏸", callback_data=f"ADMIN Pause|{chat_id}"),
-            InlineKeyboardButton("⏭", callback_data=f"ADMIN Skip|{chat_id}"),
-            InlineKeyboardButton("⏹", callback_data=f"ADMIN Stop|{chat_id}"),
+            InlineKeyboardButton("⏯️", callback_data=f"ADMIN Resume|{chat_id}", icon_custom_emoji_id=6278243100049544381, style=ButtonStyle.SUCCESS),
+            InlineKeyboardButton("⏸", callback_data=f"ADMIN Pause|{chat_id}", icon_custom_emoji_id=6062184014310020193, style=ButtonStyle.PRIMARY),
+            InlineKeyboardButton("⏭", callback_data=f"ADMIN Skip|{chat_id}", icon_custom_emoji_id=6062248013617696968, style=ButtonStyle.SUCCESS),
+            InlineKeyboardButton("⏹", callback_data=f"ADMIN Stop|{chat_id}", icon_custom_emoji_id=6314316569023352528, style=ButtonStyle.DANGER),
         ],
         [
             InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close")
