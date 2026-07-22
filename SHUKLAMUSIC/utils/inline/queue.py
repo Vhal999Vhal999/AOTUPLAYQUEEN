@@ -1,19 +1,8 @@
-# -----------------------------------------------
-# 🔸 StrangerMusic Project
-# 🔹 Developed & Maintained by: Shashank Shukla (https://github.com/itzshukla)
-# 📅 Copyright © 2022 – All Rights Reserved
-#
-# 📖 License:
-# This source code is open for educational and non-commercial use ONLY.
-# You are required to retain this credit in all copies or substantial portions of this file.
-# Commercial use, redistribution, or removal of this notice is strictly prohibited
-# without prior written permission from the author.
-#
-# ❤️ Made with dedication and love by ItzShukla
-# -----------------------------------------------
 from typing import Union
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from SHUKLAMUSIC import app
+
+from SHUKLAMUSIC.button_styles import danger_button, primary_button, success_button
+
 
 def queue_markup(
     _,
@@ -25,11 +14,11 @@ def queue_markup(
 ):
     not_dur = [
         [
-            InlineKeyboardButton(
+            primary_button(
                 text=_["QU_B_1"],
                 callback_data=f"GetQueued {CPLAY}|{videoid}",
             ),
-            InlineKeyboardButton(
+            danger_button(
                 text=_["CLOSE_BUTTON"],
                 callback_data="close",
             ),
@@ -43,11 +32,11 @@ def queue_markup(
             )
         ],
         [
-            InlineKeyboardButton(
+            primary_button(
                 text=_["QU_B_1"],
                 callback_data=f"GetQueued {CPLAY}|{videoid}",
             ),
-            InlineKeyboardButton(
+            danger_button(
                 text=_["CLOSE_BUTTON"],
                 callback_data="close",
             ),
@@ -61,11 +50,11 @@ def queue_back_markup(_, CPLAY):
     upl = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton(
+                primary_button(
                     text=_["BACK_BUTTON"],
                     callback_data=f"queue_back_timer {CPLAY}",
                 ),
-                InlineKeyboardButton(
+                danger_button(
                     text=_["CLOSE_BUTTON"],
                     callback_data="close",
                 ),
