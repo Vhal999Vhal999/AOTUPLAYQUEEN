@@ -78,18 +78,11 @@ def queue_back_markup(_, CPLAY):
 def aq_markup(_, chat_id):
     buttons = [
         [
-            InlineKeyboardButton(text=_["S_B_3"], url=f"https://t.me/{app.username}?startgroup=true",)
+            success_button(text="▷", callback_data=f"ADMIN Resume|{chat_id}"),
+            primary_button(text="II", callback_data=f"ADMIN Pause|{chat_id}"),
+            primary_button(text="‣‣I", callback_data=f"ADMIN Skip|{chat_id}"),
+            danger_button(text="▢", callback_data=f"ADMIN Stop|{chat_id}"),
         ],
-        [
-            InlineKeyboardButton(text="• ʀᴇsᴜᴍᴇ •", callback_data=f"ADMIN Resume|{chat_id}"),
-            InlineKeyboardButton(text="• ᴘᴀᴜsᴇ •", callback_data=f"ADMIN Pause|{chat_id}"),
-        ],
-        [
-            InlineKeyboardButton(text="• sᴋɪᴘ •", callback_data=f"ADMIN Skip|{chat_id}"),
-            InlineKeyboardButton(text="• sᴛᴏᴘ •", callback_data=f"ADMIN Stop|{chat_id}"),
-        ],
-        [
-            InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close")
-        ],
+        [danger_button(text=_["CLOSE_BUTTON"], callback_data="close")],
     ]
     return buttons
