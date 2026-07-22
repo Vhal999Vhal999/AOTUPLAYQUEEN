@@ -179,7 +179,19 @@ python3 -m Radha
 
 ---
 
-# 🌍 Deploy
+# 🚀 Deploy
+
+### 💜 Deploy to Heroku
+
+<p align="center">
+  <a href="https://dashboard.heroku.com/new?template=https://github.com/USERNAME/Radha-Music">
+    <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy to Heroku">
+  </a>
+</p>
+
+> **Note:** Replace `USERNAME` with your GitHub username.
+
+### 🌍 Other Platforms
 
 - VPS
 - Railway
