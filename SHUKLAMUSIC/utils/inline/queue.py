@@ -91,7 +91,7 @@ def aq_markup(_, chat_id):
             InlineKeyboardButton("", callback_data=f"ADMIN Stop|{chat_id}", icon_custom_emoji_id=5994424935211077055, style=ButtonStyle.DANGER),
         ],
         [
-            InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close")
+            InlineKeyboardButton(text=" ᴄʟᴏsᴇ ▣", callback_data="close", style=ButtonStyle.DANGER, icon_custom_emoji_id=5408832111773757273)],
         ],
     ]
     return buttons
