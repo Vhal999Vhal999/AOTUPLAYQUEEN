@@ -85,10 +85,10 @@ def aq_markup(_, chat_id):
             )
         ],
         [
-            InlineKeyboardButton("⏯️", callback_data=f"ADMIN Resume|{chat_id}", icon_custom_emoji_id=6278243100049544381, style=ButtonStyle.SUCCESS),
-            InlineKeyboardButton("⏸", callback_data=f"ADMIN Pause|{chat_id}", icon_custom_emoji_id=6062184014310020193, style=ButtonStyle.PRIMARY),
-            InlineKeyboardButton("⏭", callback_data=f"ADMIN Skip|{chat_id}", icon_custom_emoji_id=6062169402831279585, style=ButtonStyle.SUCCESS),
-            InlineKeyboardButton("⏹", callback_data=f"ADMIN Stop|{chat_id}", icon_custom_emoji_id=5994424935211077055, style=ButtonStyle.DANGER),
+            InlineKeyboardButton("", callback_data=f"ADMIN Resume|{chat_id}", icon_custom_emoji_id=6278243100049544381, style=ButtonStyle.SUCCESS),
+            InlineKeyboardButton("", callback_data=f"ADMIN Pause|{chat_id}", icon_custom_emoji_id=6062184014310020193, style=ButtonStyle.PRIMARY),
+            InlineKeyboardButton("", callback_data=f"ADMIN Skip|{chat_id}", icon_custom_emoji_id=6062169402831279585, style=ButtonStyle.SUCCESS),
+            InlineKeyboardButton("", callback_data=f"ADMIN Stop|{chat_id}", icon_custom_emoji_id=5994424935211077055, style=ButtonStyle.DANGER),
         ],
         [
             InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close")
