@@ -1,4 +1,3 @@
-````markdown
 <div align="center">
 
 <img src="assets/radha.jpg" width="100%" alt="Radha Music Banner">
@@ -179,26 +178,14 @@ python3 -m Radha
 
 ---
 
-# 🚀 Deploy
-
-### 💜 Deploy to Heroku
-
-<p align="center">
-  <a href="https://dashboard.heroku.com/new?template=https://github.com/USERNAME/Radha-Music">
-    <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy to Heroku">
-  </a>
-</p>
-
-> **Note:** Replace `USERNAME` with your GitHub username.
-
-### 🌍 Other Platforms
+# 🌍 Deploy
 
 - VPS
 - Railway
 - Render
 - Docker
 - Local Machine
-
+-https://dashboard.heroku.com/new?template=https://github.com/MadaraOP/Radha-Music
 ---
 
 # 📊 Repository Stats
@@ -226,5 +213,3 @@ Made with ❤️ by **Madara**
 <img src="https://capsule-render.vercel.app/api?type=waving&section=footer&height=140&color=gradient&customColorList=17,18,19,20"/>
 
 </div>
-````
-
