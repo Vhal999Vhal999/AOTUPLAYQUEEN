@@ -1,20 +1,5 @@
-# -----------------------------------------------
-# 🔸 StrangerMusic Project
-# 🔹 Developed & Maintained by: Shashank Shukla (https://github.com/itzshukla)
-# 📅 Copyright © 2022 – All Rights Reserved
-#
-# 📖 License:
-# This source code is open for educational and non-commercial use ONLY.
-# You are required to retain this credit in all copies or substantial portions of this file.
-# Commercial use, redistribution, or removal of this notice is strictly prohibited
-# without prior written permission from the author.
-#
-# ❤️ Made with dedication and love by ItzShukla
-# -------------------------------------
-
 import math
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from SHUKLAMUSIC import app
+from pyrogram.types import InlineKeyboardButton
 import config
 from pyrogram.enums import ButtonStyle
 from SHUKLAMUSIC.utils.formatters import time_to_seconds
@@ -45,9 +30,9 @@ def track_markup(_, videoid, user_id, channel, fplay):
 def stream_markup_timer(_, chat_id, played, dur):
     played_sec = time_to_seconds(played)
     duration_sec = time_to_seconds(dur)
-    percentage = (played_sec / duration_sec) * 100
-    
-    umm = math.floor(percentage)
+    percentage = (played_sec / duration_sec) * 100 if duration_sec > 0 else 0
+
+    umm = math.floor(max(0, min(percentage, 100)))
     if 0 < umm <= 10:
         bar = "▣—————————"
     elif 10 < umm < 20:
@@ -82,28 +67,6 @@ def stream_markup_timer(_, chat_id, played, dur):
             InlineKeyboardButton(text="", callback_data=f"ADMIN Pause|{chat_id}", icon_custom_emoji_id=5409042015415448331, style=ButtonStyle.PRIMARY),
             InlineKeyboardButton(text="", callback_data=f"ADMIN Stop|{chat_id}", icon_custom_emoji_id=5408832111773757273, style=ButtonStyle.DANGER),
         ],
-        [
-            InlineKeyboardButton(
-                text="ᴀᴜᴛᴏᴘʟᴀʏ",
-                callback_data=f"ADMIN Autoplay|{chat_id}",
-                icon_custom_emoji_id=5247194659721090657,
-                style=ButtonStyle.PRIMARY,
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="ᴜᴘᴅᴀᴛᴇ",
-                url=config.SUPPORT_CHANNEL,
-                icon_custom_emoji_id=5409025823388741707,
-                style=ButtonStyle.SUCCESS
-            ),
-            InlineKeyboardButton(
-                text="sᴜᴘᴘᴏꝛᴛ",
-                url=config.SUPPORT_CHAT,
-                icon_custom_emoji_id=5409194306365829029,
-                style=ButtonStyle.PRIMARY
-            )
-        ],
         [InlineKeyboardButton(text=" ᴄʟᴏsᴇ ▣", callback_data="close", style=ButtonStyle.DANGER, icon_custom_emoji_id=5408832111773757273)],
     ]
     return buttons
@@ -116,31 +79,10 @@ def stream_markup(_, chat_id):
             InlineKeyboardButton(text="", callback_data=f"ADMIN Pause|{chat_id}", icon_custom_emoji_id=5409042015415448331, style=ButtonStyle.PRIMARY),
             InlineKeyboardButton(text="", callback_data=f"ADMIN Stop|{chat_id}", icon_custom_emoji_id=5408832111773757273, style=ButtonStyle.DANGER),
         ],
-        [
-            InlineKeyboardButton(
-                text="ᴀᴜᴛᴏᴘʟᴀʏ",
-                callback_data=f"ADMIN Autoplay|{chat_id}",
-                icon_custom_emoji_id=6271653280187684816,
-                style=ButtonStyle.PRIMARY,
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="ᴜᴘᴅᴀᴛᴇ",
-                url=config.SUPPORT_CHANNEL,
-                icon_custom_emoji_id=5409025823388741707,
-                style=ButtonStyle.SUCCESS
-            ),
-            InlineKeyboardButton(
-                text="sᴜᴘᴘᴏꝛᴛ",
-                url=config.SUPPORT_CHAT,
-                icon_custom_emoji_id=5409194306365829029,
-                style=ButtonStyle.PRIMARY
-            )
-        ],
         [InlineKeyboardButton(text=" ᴄʟᴏsᴇ ▣", callback_data="close", style=ButtonStyle.DANGER, icon_custom_emoji_id=5408832111773757273)],
     ]
     return buttons
+
 
 def playlist_markup(_, videoid, user_id, ptype, channel, fplay):
     buttons = [
