@@ -12,18 +12,18 @@ from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from youtubesearchpython.future import VideosSearch
+from py_yt import VideosSearch, Playlist
 try:
     from youtubesearchpython.future.extras import Recommendations
 except ImportError:
     Recommendations = None
 import base64
-from VIVAANXMUSIC import LOGGER
-from VIVAANXMUSIC.utils.database import is_on_off
-from VIVAANXMUSIC.utils.formatters import time_to_seconds
-from VIVAANXMUSIC.utils.url_guard import is_safe_media_url
-from VIVAANXMUSIC.security import build_subprocess_env
-from VIVAANXMUSIC.utils.stream.source_status import set_youtube_source_status
+from SHUKLAMUSIC import LOGGER
+from SHUKLAMUSIC.utils.database import is_on_off
+from SHUKLAMUSIC.utils.formatters import time_to_seconds
+from SHUKLAMUSIC.utils.url_guard import is_safe_media_url
+from SHUKLAMUSIC.security import build_subprocess_env
+from SHUKLAMUSIC.utils.stream.source_status import set_youtube_source_status
 from config import DURATION_LIMIT, YT_API_KEY, YTPROXY_URL
 
 logger = LOGGER(__name__)
