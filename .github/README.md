@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/radha.jpg" width="100%" alt="Radha Music Banner">
+<img src="https://h.uguu.se/rbricwLU.jpg" width="100%" alt="Radha Music Banner">
 
 # ✨ QUEEN X MUSIC ♪
 
