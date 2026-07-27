@@ -14,6 +14,7 @@ from pyrogram.types import Message
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from py_yt import VideosSearch, Playlist
+from SHUKLAMUSIC.platforms.Youtube import download_audio, download_video
 from SHUKLAMUSIC import LOGGER
 from SHUKLAMUSIC.utils.database import is_on_off
 from SHUKLAMUSIC.utils.formatters import time_to_seconds
