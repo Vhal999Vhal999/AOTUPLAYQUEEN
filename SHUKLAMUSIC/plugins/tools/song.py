@@ -25,7 +25,7 @@ from pyrogram.types import (
 )
 
 from SHUKLAMUSIC import app, YouTube
-from SHUKLAMUSIC.platforms.Youtube import download_song, download_video
+from SHUKLAMUSIC.platforms.Youtube import download_audio, download_video
 from config import (
     BANNED_USERS,
     SONG_DOWNLOAD_DURATION,
