@@ -1,133 +1,192 @@
+# Copyright (c) 2025 TheHamkerAlone 
+# Licensed under the MIT License.
+# This file is part of AloneX
+
 import os
+import asyncio
+import numpy as np
 import re
-import aiofiles
 import aiohttp
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
+from collections import Counter
 from py_yt import VideosSearch, Playlist
-from config import YOUTUBE_IMG_URL
+from ishu import config
+from ishu.helpers import Track
 
-# Constants
-CACHE_DIR = "cache"
-os.makedirs(CACHE_DIR, exist_ok=True)
-
-PANEL_W, PANEL_H = 763, 545
-PANEL_X = (1280 - PANEL_W) // 2
-PANEL_Y = 88
-TRANSPARENCY = 170
-INNER_OFFSET = 36
-
-THUMB_W, THUMB_H = 542, 273
-THUMB_X = PANEL_X + (PANEL_W - THUMB_W) // 2
-THUMB_Y = PANEL_Y + INNER_OFFSET
-
-TITLE_X = 377
-META_X = 377
-TITLE_Y = THUMB_Y + THUMB_H + 10
-META_Y = TITLE_Y + 45
-
-BAR_X, BAR_Y = 388, META_Y + 45
-BAR_RED_LEN = 280
-BAR_TOTAL_LEN = 480
-
-ICONS_W, ICONS_H = 415, 45
-ICONS_X = PANEL_X + (PANEL_W - ICONS_W) // 2
-ICONS_Y = BAR_Y + 48
-
-MAX_TITLE_WIDTH = 580
-
-def trim_to_width(text: str, font: ImageFont.FreeTypeFont, max_w: int) -> str:
-    ellipsis = "…"
-    if font.getlength(text) <= max_w:
+try:
+    from unidecode import unidecode
+except ImportError:
+    def unidecode(text):
         return text
-    for i in range(len(text) - 1, 0, -1):
-        if font.getlength(text[:i] + ellipsis) <= max_w:
-            return text[:i] + ellipsis
-    return ellipsis
 
-async def get_thumb(videoid: str) -> str:
-    cache_path = os.path.join(CACHE_DIR, f"{videoid}_v4.png")
-    if os.path.exists(cache_path):
-        return cache_path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FONT_TITLE_PATH = os.path.join(BASE_DIR, "font.ttf")
+FONT_INFO_PATH = os.path.join(BASE_DIR, "font2.ttf")
+TEMPLATE_PATH = os.path.join(BASE_DIR, "..", "assets", "template.png")
 
-    # YouTube video data fetch
-    results = VideosSearch(f"https://www.youtube.com/watch?v={videoid}", limit=1)
+def safe_font(path, size):
     try:
-        results_data = await results.next()
-        result_items = results_data.get("result", [])
-        if not result_items:
-            raise ValueError("No results found.")
-        data = result_items[0]
-        title = re.sub(r"\W+", " ", data.get("title", "Unsupported Title")).title()
-        thumbnail = data.get("thumbnails", [{}])[0].get("url", YOUTUBE_IMG_URL)
-        duration = data.get("duration")
-        views = data.get("viewCount", {}).get("short", "Unknown Views")
+        return ImageFont.truetype(path, size)
     except Exception:
-        title, thumbnail, duration, views = "Unsupported Title", YOUTUBE_IMG_URL, None, "Unknown Views"
+        return ImageFont.load_default()
 
-    is_live = not duration or str(duration).strip().lower() in {"", "live", "live now"}
-    duration_text = "Live" if is_live else duration or "Unknown Mins"
+class Thumbnail:
+    def __init__(self):
+        self.size = (1280, 720)
+        self.font_title = safe_font(FONT_TITLE_PATH, 26)
+        self.font_info = safe_font(FONT_INFO_PATH, 20)
 
-    # Download thumbnail
-    thumb_path = os.path.join(CACHE_DIR, f"thumb{videoid}.png")
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(thumbnail) as resp:
-                if resp.status == 200:
-                    async with aiofiles.open(thumb_path, "wb") as f:
-                        await f.write(await resp.read())
-    except Exception:
-        return YOUTUBE_IMG_URL
+    async def start(self):
+        os.makedirs("cache", exist_ok=True)
 
-    # Create base image
-    base = Image.open(thumb_path).resize((1280, 720)).convert("RGBA")
-    bg = ImageEnhance.Brightness(base.filter(ImageFilter.BoxBlur(10))).enhance(0.6)
+        if not os.path.exists(FONT_TITLE_PATH):
+            print(f"Missing font: {FONT_TITLE_PATH}")
 
-    # Frosted glass panel
-    panel_area = bg.crop((PANEL_X, PANEL_Y, PANEL_X + PANEL_W, PANEL_Y + PANEL_H))
-    overlay = Image.new("RGBA", (PANEL_W, PANEL_H), (255, 255, 255, TRANSPARENCY))
-    frosted = Image.alpha_composite(panel_area, overlay)
-    mask = Image.new("L", (PANEL_W, PANEL_H), 0)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, PANEL_W, PANEL_H), 50, fill=255)
-    bg.paste(frosted, (PANEL_X, PANEL_Y), mask)
+        if not os.path.exists(FONT_INFO_PATH):
+            print(f"Missing font: {FONT_INFO_PATH}")
 
-    # Draw details
-    draw = ImageDraw.Draw(bg)
-    try:
-        title_font = ImageFont.truetype("SHUKLAMUSIC/assets/font2.ttf", 32)
-        regular_font = ImageFont.truetype("SHUKLAMUSIC/assets/font.ttf", 18)
-    except OSError:
-        title_font = regular_font = ImageFont.load_default()
+        if not os.path.exists(TEMPLATE_PATH):
+            print(f"Missing template: {TEMPLATE_PATH}")
 
-    thumb = base.resize((THUMB_W, THUMB_H))
-    tmask = Image.new("L", thumb.size, 0)
-    ImageDraw.Draw(tmask).rounded_rectangle((0, 0, THUMB_W, THUMB_H), 20, fill=255)
-    bg.paste(thumb, (THUMB_X, THUMB_Y), tmask)
+        return True
 
-    draw.text((TITLE_X, TITLE_Y), trim_to_width(title, title_font, MAX_TITLE_WIDTH), fill="black", font=title_font)
-    draw.text((META_X, META_Y), f"YouTube | {views}", fill="black", font=regular_font)
+    async def save_thumb(self, output_path: str, url: str) -> str:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
+        for attempt in range(3):
+            try:
+                if url.startswith("http"):
+                    async with aiohttp.ClientSession(headers=headers) as session:
+                        async with session.get(url, timeout=15) as resp:
+                            if resp.status == 200:
+                                content = await resp.read()
+                                with open(output_path, "wb") as f:
+                                    f.write(content)
+                                return output_path
+            except Exception as e:
+                if attempt == 2:
+                    print(f"Error saving thumb: {e}")
+                await asyncio.sleep(1)
+        return output_path
 
-    # Progress bar
-    draw.line([(BAR_X, BAR_Y), (BAR_X + BAR_RED_LEN, BAR_Y)], fill="red", width=6)
-    draw.line([(BAR_X + BAR_RED_LEN, BAR_Y), (BAR_X + BAR_TOTAL_LEN, BAR_Y)], fill="gray", width=5)
-    draw.ellipse([(BAR_X + BAR_RED_LEN - 7, BAR_Y - 7), (BAR_X + BAR_RED_LEN + 7, BAR_Y + 7)], fill="red")
+    async def generate(self, song: Track) -> str:
+        try:
+            os.makedirs("cache", exist_ok=True)
+            temp = f"cache/temp_{song.id}.jpg"
+            final_path = f"cache/{song.id}.png"
+            if os.path.exists(final_path):
+                return final_path
 
-    draw.text((BAR_X, BAR_Y + 15), "00:00", fill="black", font=regular_font)
-    end_text = "Live" if is_live else duration_text
-    draw.text((BAR_X + BAR_TOTAL_LEN - (90 if is_live else 60), BAR_Y + 15), end_text, fill="red" if is_live else "black", font=regular_font)
+            await self.save_thumb(temp, song.thumbnail)
+            
+            try:
+                src = Image.open(temp).convert("RGBA")
+            except Exception:
+                try:
+                    src = Image.new("RGBA", (1280, 720), (30, 30, 30, 255))
+                except Exception:
+                    return config.DEFAULT_THUMB
 
-    # Icons
-    icons_path = "SHUKLAMUSIC/assets/play_icons.png"
-    if os.path.isfile(icons_path):
-        ic = Image.open(icons_path).resize((ICONS_W, ICONS_H)).convert("RGBA")
-        r, g, b, a = ic.split()
-        black_ic = Image.merge("RGBA", (r.point(lambda *_: 0), g.point(lambda *_: 0), b.point(lambda *_: 0), a))
-        bg.paste(black_ic, (ICONS_X, ICONS_Y), black_ic)
+            W, H = self.size
 
-    # Cleanup and save
-    try:
-        os.remove(thumb_path)
-    except OSError:
-        pass
+            # 1. BLURRED BACKGROUND from song image
+            bg_ratio = W / H
+            src_ratio = src.width / src.height
+            if src_ratio > bg_ratio:
+                new_w = int(src.height * bg_ratio)
+                offset = (src.width - new_w) // 2
+                bg = src.crop((offset, 0, offset + new_w, src.height))
+            else:
+                new_h = int(src.width / bg_ratio)
+                offset = (src.height - new_h) // 2
+                bg = src.crop((0, offset, src.width, offset + new_h))
 
-    bg.save(cache_path)
-    return cache_path
+            bg = bg.resize((W, H), Image.Resampling.LANCZOS)
+            bg = bg.filter(ImageFilter.GaussianBlur(25))
+
+            # Darken slightly
+            bg_overlay = Image.new("RGBA", (W, H), (0, 0, 0, 100))
+            bg = Image.alpha_composite(bg, bg_overlay)
+
+            # 2. LOAD TEMPLATE & extract UI with soft alpha
+            if os.path.exists(TEMPLATE_PATH):
+                tpl = Image.open(TEMPLATE_PATH).convert("RGBA")
+                tpl = tpl.resize((W, H), Image.Resampling.LANCZOS)
+
+                tpl_arr = np.array(tpl).astype(float)
+                r, g, b = tpl_arr[:,:,0], tpl_arr[:,:,1], tpl_arr[:,:,2]
+
+                d_bg = np.maximum(np.maximum(np.abs(r - 147.5), np.abs(g - 147.5)), np.abs(b - 147.5))
+                alpha = np.clip((d_bg - 8) / 17.0 * 255, 0, 255)
+                alpha[:, :640] = 0
+
+                tpl_arr[:,:,3] = alpha
+                tpl = Image.fromarray(tpl_arr.astype(np.uint8))
+                
+                bg = Image.alpha_composite(bg, tpl)
+
+            # 3. PASTE COVER ART & DROP SHADOW
+            cover_x, cover_y = 100, 104
+            cover_w, cover_h = 512, 512
+            cover_radius = 38
+
+            shadow_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            shadow_draw = ImageDraw.Draw(shadow_layer)
+            shadow_draw.rounded_rectangle(
+                (cover_x + 6, cover_y + 8, cover_x + cover_w + 6, cover_y + cover_h + 8),
+                radius=cover_radius + 4,
+                fill=(0, 0, 0, 140),
+            )
+            shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(18))
+            bg = Image.alpha_composite(bg, shadow_layer)
+
+            cover_resized = src.resize((cover_w, cover_h), Image.Resampling.LANCZOS)
+            cover_mask = Image.new("L", (cover_w, cover_h), 0)
+            ImageDraw.Draw(cover_mask).rounded_rectangle(
+                (0, 0, cover_w, cover_h), radius=cover_radius, fill=255
+            )
+            bg.paste(cover_resized, (cover_x, cover_y), cover_mask)
+
+            # 4. ADD TEXT 
+            draw = ImageDraw.Draw(bg)
+            text_x = 715
+            text_max_w = 320
+
+            def ellipsize(s, font, max_w):
+                if draw.textbbox((0, 0), s, font=font)[2] <= max_w:
+                    return s
+                lo, hi = 1, len(s)
+                best = "…"
+                while lo <= hi:
+                    mid = (lo + hi) // 2
+                    cand = s[:mid].rstrip() + "…"
+                    if draw.textbbox((0, 0), cand, font=font)[2] <= max_w:
+                        best = cand
+                        lo = mid + 1
+                    else:
+                        hi = mid - 1
+                return best
+
+            title_str = ellipsize(unidecode(str(song.title)), self.font_title, text_max_w)
+            title_y = cover_y + 12
+            draw.text((text_x, title_y), title_str, fill=(255, 255, 255, 255), font=self.font_title)
+
+            artist_str = ellipsize(unidecode(str(song.channel_name)), self.font_info, text_max_w + 60)
+            artist_y = title_y + 40
+            draw.text((text_x, artist_y), artist_str, fill=(200, 200, 200, 255), font=self.font_info)
+            
+            out = bg.convert("RGB")
+            out.save(final_path, "PNG")
+
+            try:
+                if os.path.exists(temp):
+                    os.remove(temp)
+            except Exception:
+                pass
+
+            return final_path
+
+        except Exception as e:
+            print(f"Error: {e}")
+            return config.DEFAULT_THUMB
