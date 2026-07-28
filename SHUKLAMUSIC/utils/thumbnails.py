@@ -10,8 +10,8 @@ import aiohttp
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 from collections import Counter
 from py_yt import VideosSearch, Playlist
-from ishu import config
-from ishu.helpers import Track
+from SHUKLAMUSIC import config
+from SHUKLAMUSIC.helpers import Track
 
 try:
     from unidecode import unidecode
