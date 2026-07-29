@@ -46,7 +46,7 @@ async def start(_, msg):
             ),
             InlineKeyboardButton(
                 text="˹ϻʏ ʜᴏϻє˼",
-                url="https://t.me/annu_updates",
+                url="https://t.me/ll_ROYAL_ABOUT_ll",
                 style=ButtonStyle.SUCCESS,
                 icon_custom_emoji_id=_E_FLOWER,
             ),
@@ -54,7 +54,7 @@ async def start(_, msg):
         [
             InlineKeyboardButton(
                 text="˹ ϻʏ ϻᴧsᴛєʀ ˼ 👑",
-                url="https://t.me/Pyxd_ll",
+                url="https://t.me/ll_ROYAL_ABOUT_ll",
                 style=ButtonStyle.DANGER,
                 icon_custom_emoji_id=_E_GLOW,
             ),
