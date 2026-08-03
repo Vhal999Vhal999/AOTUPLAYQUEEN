@@ -1,139 +1,152 @@
-#!/usr/bin/env python3
-"""
-autoplay.py
-
-Simple autoplay script for AOTUPLAYQUEEN repository.
-Behavior (default): sequentially plays audio files found under SHUKLAMUSIC/ and loops the playlist.
-
-Usage examples:
-  python3 autoplay.py                # sequential, loop
-  python3 autoplay.py --no-loop      # play once through
-  python3 autoplay.py --shuffle      # shuffle playlist
-  python3 autoplay.py --delay 2      # wait 2 seconds between tracks
-  python3 autoplay.py --player ffplay # prefer ffplay (ffmpeg) for playback
-
-Playback methods tried (in order):
- - ffplay (ffmpeg) via subprocess
- - pydub playback (requires simpleaudio or pyaudio installed)
- - playsound module
-
-The script will print helpful messages if no player is available.
-"""
-
-import argparse
+# -----------------------------------------------
+# Autoplay admin plugin (extended)
+# Adds commands for managing autoplay: /autoplay, /autoplaystatus, /autoplayowner, /playautoplay
+# -----------------------------------------------
+from SHUKLAMUSIC import app
+from pyrogram import filters
+from pyrogram.types import Message
+from SHUKLAMUSIC.utils.decorators import AdminRightsCheck
+from SHUKLAMUSIC.utils.database import (
+    get_autoplay,
+    set_autoplay,
+    set_autoplay_owner,
+    get_autoplay_owner,
+    music_on,
+    music_off,
+)
+from SHUKLAMUSIC.core.call import SHUKLA
+from config import BANNED_USERS
 import os
-import random
 import subprocess
-import sys
-import time
-from pathlib import Path
-
-AUDIO_EXTS = {'.mp3', '.wav', '.ogg', '.m4a', '.flac', '.aac'}
-DEFAULT_MUSIC_DIR = Path(__file__).resolve().parent / 'SHUKLAMUSIC'
 
 
-class Player:
-    def __init__(self, preferred=None):
-        self.preferred = preferred
-        self._test_ffplay = None
+@app.on_message(filters.command(["autoplay", "ap"]) & filters.group & ~BANNED_USERS)
+@AdminRightsCheck
+async def autoplay_toggle(client, message: Message, _, chat_id):
+    """Toggle or set autoplay for this chat.
 
-    def _has_ffplay(self):
-        if self._test_ffplay is not None:
-            return self._test_ffplay
-        try:
-            subprocess.run(['ffplay', '-version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            self._test_ffplay = True
-        except FileNotFoundError:
-            self._test_ffplay = False
-        return self._test_ffplay
-
-    def play(self, path):
-        path = str(path)
-        # If user requested ffplay explicitly, try that first
-        if self.preferred == 'ffplay' or (self.preferred is None and self._has_ffplay()):
-            try:
-                # -nodisp hides display, -autoexit quits when done, -loglevel quiet to reduce output
-                subprocess.run(['ffplay', '-nodisp', '-autoexit', '-loglevel', 'quiet', path])
-                return
-            except FileNotFoundError:
-                pass
-            except Exception:
-                # fall through to other players
-                pass
-
-        # Try pydub playback
-        try:
-            from pydub import AudioSegment, playback
-            seg = AudioSegment.from_file(path)
-            playback.play(seg)
-            return
-        except Exception:
-            pass
-
-        # Try playsound
-        try:
-            from playsound import playsound
-            playsound(path)
-            return
-        except Exception:
-            pass
-
-        raise RuntimeError('No available playback method found. Install ffmpeg (ffplay), pydub+simpleaudio, or playsound.')
-
-
-def find_tracks(folder: Path):
-    folder = Path(folder)
-    if not folder.exists() or not folder.is_dir():
-        return []
-    tracks = []
-    for root, _, files in os.walk(folder):
-        for f in files:
-            if Path(f).suffix.lower() in AUDIO_EXTS:
-                tracks.append(Path(root) / f)
-    # natural sort by name
-    tracks.sort()
-    return tracks
-
-
-def main():
-    parser = argparse.ArgumentParser(description='Autoplay audio from SHUKLAMUSIC/')
-    parser.add_argument('--dir', '-d', default=str(DEFAULT_MUSIC_DIR), help='Directory to scan for audio files')
-    parser.add_argument('--shuffle', action='store_true', help='Shuffle playlist')
-    parser.add_argument('--no-loop', dest='loop', action='store_false', help='Do not loop the playlist (play only once)')
-    parser.add_argument('--delay', type=float, default=0.0, help='Seconds to wait between tracks')
-    parser.add_argument('--player', choices=['ffplay', 'pydub', 'playsound', 'auto'], default='auto', help='Preferred player (auto tries ffplay then pydub then playsound)')
-    args = parser.parse_args()
-
-    music_dir = Path(args.dir)
-    tracks = find_tracks(music_dir)
-
-    if not tracks:
-        print(f'No audio files found in {music_dir}. Please add files to the SHUKLAMUSIC/ directory.')
-        sys.exit(1)
-
-    player = Player(preferred=(args.player if args.player != 'auto' else None))
-
-    print(f'Autoplay starting: {len(tracks)} track(s) found in {music_dir}')
-    print(f"Options -> shuffle={args.shuffle}, loop={args.loop}, delay={args.delay}, preferred_player={args.player}")
-
+    Usage:
+      /autoplay            -> toggles current state
+      /autoplay on|off     -> enable or disable autoplay
+      /autoplay start|stop -> start or stop playback immediately
+    """
+    cmd = message.command
     try:
-        while True:
-            playlist = list(tracks)
-            if args.shuffle:
-                random.shuffle(playlist)
-            for t in playlist:
-                print(f'Playing: {t.name}')
+        if len(cmd) > 1:
+            arg = cmd[1].lower()
+            if arg in ("on", "1", "true"):
+                await set_autoplay(chat_id, True)
+                await set_autoplay_owner(chat_id, message.from_user.id)
+                return await message.reply_text("🌟 Autoplay is now ON for this chat.")
+            elif arg in ("off", "0", "false"):
+                await set_autoplay(chat_id, False)
+                return await message.reply_text("⏹ Autoplay is now OFF for this chat.")
+            elif arg == "start":
+                # enable autoplay and try to resume/start stream
+                await set_autoplay(chat_id, True)
+                await set_autoplay_owner(chat_id, message.from_user.id)
                 try:
-                    player.play(t)
+                    await music_on(chat_id)
+                    await SHUKLA.resume_stream(chat_id)
+                except Exception:
+                    # fallback: attempt to resume only
+                    try:
+                        await SHUKLA.resume_stream(chat_id)
+                    except Exception as e:
+                        return await message.reply_text(f"Failed to start playback: {e}")
+                return await message.reply_text("▶️ Playback started and autoplay enabled.")
+            elif arg == "stop":
+                # disable autoplay and stop stream
+                await set_autoplay(chat_id, False)
+                try:
+                    await music_off(chat_id)
+                    await SHUKLA.stop_stream(chat_id)
                 except Exception as e:
-                    print(f'Error playing {t.name}: {e}')
-                if args.delay and args.delay > 0:
-                    time.sleep(args.delay)
-            if not args.loop:
-                break
-    except KeyboardInterrupt:
-        print('\nAutoplay stopped by user.')
+                    return await message.reply_text(f"Failed to stop playback: {e}")
+                return await message.reply_text("⏹ Playback stopped and autoplay disabled.")
+            else:
+                return await message.reply_text("Usage: /autoplay [on|off|start|stop]")
+
+        # toggle
+        state = await get_autoplay(chat_id)
+        new_state = not state
+        await set_autoplay(chat_id, new_state)
+        if new_state:
+            await set_autoplay_owner(chat_id, message.from_user.id)
+            await message.reply_text("🌟 Autoplay turned ON for this chat.")
+        else:
+            await message.reply_text("⏹ Autoplay turned OFF for this chat.")
+    except Exception as e:
+        await message.reply_text(f"Error while toggling autoplay: {e}")
 
 
-if __name__ == '__main__':
-    main()
+@app.on_message(filters.command(["autoplaystatus", "apstatus"]) & filters.group & ~BANNED_USERS)
+@AdminRightsCheck
+async def autoplay_status(client, message: Message, _, chat_id):
+    """Show current autoplay status and owner."""
+    try:
+        state = await get_autoplay(chat_id)
+        owner = await get_autoplay_owner(chat_id)
+        owner_txt = f"Owner ID: <code>{owner}</code>" if owner else "No owner set"
+        await message.reply_text(f"Autoplay is {'ON' if state else 'OFF'} for this chat.\n{owner_txt}")
+    except Exception as e:
+        await message.reply_text(f"Error fetching autoplay status: {e}")
+
+
+@app.on_message(filters.command(["autoplayowner", "apowner"]) & filters.group & ~BANNED_USERS)
+@AdminRightsCheck
+async def autoplay_owner_cmd(client, message: Message, _, chat_id):
+    """Show or set the autoplay owner. Use by replying to a user to set them as owner.
+
+    Usage:
+      /autoplayowner            -> show owner
+      Reply to a user's message with /autoplayowner -> set that user as owner
+      /autoplayowner clear      -> clear owner
+      /autoplayowner <user_id>  -> set owner by user id
+    """
+    cmd = message.command
+    try:
+        if len(cmd) > 1:
+            arg = cmd[1].lower()
+            if arg == "clear":
+                await set_autoplay_owner(chat_id, None)
+                return await message.reply_text("✅ Autoplay owner cleared.")
+            # try parse numeric id
+            try:
+                uid = int(arg)
+                await set_autoplay_owner(chat_id, uid)
+                return await message.reply_text(f"✅ Autoplay owner set to <code>{uid}</code>")
+            except ValueError:
+                return await message.reply_text("Usage: /autoplayowner [clear|<user_id>] or reply to a user message to set owner.")
+
+        if message.reply_to_message and message.reply_to_message.from_user:
+            uid = message.reply_to_message.from_user.id
+            await set_autoplay_owner(chat_id, uid)
+            return await message.reply_text(f"✅ Autoplay owner set to {message.reply_to_message.from_user.mention}")
+
+        owner = await get_autoplay_owner(chat_id)
+        if not owner:
+            return await message.reply_text("No autoplay owner set for this chat.")
+        return await message.reply_text(f"Current autoplay owner: <code>{owner}</code>")
+    except Exception as e:
+        await message.reply_text(f"Error managing autoplay owner: {e}")
+
+
+@app.on_message(filters.command(["playautoplay"]) & filters.group & ~BANNED_USERS)
+@AdminRightsCheck
+async def play_autoplay_wrapper(client, message: Message, _, chat_id):
+    """Attempt to run the repository's autoplay.py on the host where this bot runs.
+
+    Note: This will only work if the bot process has permission to spawn subprocesses and
+    the host environment has Python and required dependencies installed.
+    """
+    try:
+        script = os.path.join(os.getcwd(), "autoplay.py")
+        if not os.path.isfile(script):
+            return await message.reply_text("autoplay.py not found on the server.")
+        # Start the script in the background
+        # Use python3 and detach
+        subprocess.Popen(["python3", script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        await message.reply_text("▶️ autoplay.py started on the server (background process).")
+    except Exception as e:
+        await message.reply_text(f"Failed to start autoplay.py: {e}")
