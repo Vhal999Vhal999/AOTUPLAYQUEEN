@@ -1,5 +1,6 @@
 """
 Music Handlers - Play, Pause, Skip, Queue Management
+Added: autoplay (aotuplay) support and command
 """
 
 from pyrogram import filters
@@ -15,9 +16,15 @@ class MusicQueue:
         self.queue = deque()
         self.current_playing = None
         self.is_playing = False
+        # autoplay feature: if True, replay last track when queue empties
+        self.autoplay = False
+        # keep reference to the last added/played track for autoplay
+        self.last_track = None
     
     def add_to_queue(self, track):
         """Add track to queue"""
+        # remember last track for autoplay
+        self.last_track = track
         self.queue.append(track)
         return len(self.queue)
     
@@ -135,6 +142,13 @@ def register_music_handlers(bot):
         skipped_track = music_queue.current_playing
         next_track = music_queue.skip_track()
         
+        # If there's no next track but autoplay is enabled, re-add last track
+        if not next_track and music_queue.autoplay and music_queue.last_track:
+            # Re-add last track and get it as next
+            music_queue.add_to_queue(music_queue.last_track)
+            next_track = music_queue.get_next()
+            music_queue.is_playing = True
+        
         if next_track:
             await message.reply_text(
                 f"⏭️ **Skipped**\n\n"
@@ -240,6 +254,41 @@ def register_music_handlers(bot):
             "/queue - Show current queue\n"
             "/current - Show currently playing track\n"
             "/clear - Clear entire queue\n"
+            "/aotuplay - Toggle autoplay mode (also /autoplay)\n"
             "/music_help - Show this help message"
         )
 
+    
+    @bot.on_message(filters.command(["aotuplay", "autoplay"]))
+    async def aotuplay_handler(client, message: Message):
+        """Toggle or set autoplay mode.
+
+        Usage:
+        /aotuplay - toggles autoplay on/off
+        /aotuplay on - enable autoplay
+        /aotuplay off - disable autoplay
+        /aotuplay status - show current status
+        """
+        # parse arguments
+        parts = message.text.strip().split()
+        # default: toggle
+        if len(parts) == 1:
+            music_queue.autoplay = not music_queue.autoplay
+            status = "enabled" if music_queue.autoplay else "disabled"
+            await message.reply_text(f"🔁 Autoplay {status}.")
+            return
+        arg = parts[1].lower()
+        if arg in ("on", "true", "1"):
+            music_queue.autoplay = True
+            await message.reply_text("🔁 Autoplay enabled.")
+            return
+        if arg in ("off", "false", "0"):
+            music_queue.autoplay = False
+            await message.reply_text("🔁 Autoplay disabled.")
+            return
+        if arg in ("status", "state"):
+            status = "enabled" if music_queue.autoplay else "disabled"
+            await message.reply_text(f"🔁 Autoplay is currently {status}.")
+            return
+        # unknown argument
+        await message.reply_text("❌ Unknown argument. Use: on, off, status or nothing to toggle.")
