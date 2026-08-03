@@ -1,6 +1,6 @@
 """
 Music Handlers - Play, Pause, Skip, Queue Management
-Fixed: reliable autoplay inline buttons + callback handling and autoplay state
+Fixed: /play accepts reply-audio, same-message audio, or file_id argument. Replies translated to Hindi for play-related responses.
 """
 
 from pyrogram import filters
@@ -78,70 +78,89 @@ def register_music_handlers(bot):
 
     @bot.on_message(filters.command("play"))
     async def play_handler(client, message: Message):
-        """Play music command"""
-        if not message.reply_to_message:
-            await message.reply_text("❌ Please reply to an audio file to play it.")
-            return
-
-        audio = message.reply_to_message.audio
-        if not audio:
-            await message.reply_text("❌ The replied message doesn't contain an audio file.")
-            return
-
-        track_info = {
-            "title": audio.title or "Unknown Track",
-            "artist": audio.performer or "Unknown Artist",
-            "duration": audio.duration,
-            "file_id": audio.file_id
-        }
-
-        music_queue.add_to_queue(track_info)
-
-        if not music_queue.is_playing:
-            music_queue.is_playing = True
-            music_queue.get_next()
-            await message.reply_text(
-                f"🎵 **Now Playing:**\n\n"
-                f"🎼 Title: {track_info['title']}\n"
-                f"🎤 Artist: {track_info['artist']}\n"
-                f"⏱️ Duration: {track_info['duration']}s"
-            )
+        """Play music command — supports reply-audio, same-message audio, or /play <file_id>"""
+        audio = None
+        # 1) Reply to a message with audio
+        if message.reply_to_message and getattr(message.reply_to_message, "audio", None):
+            audio = message.reply_to_message.audio
+        # 2) Audio sent in the same message
+        elif getattr(message, "audio", None):
+            audio = message.audio
         else:
-            queue_position = music_queue.queue_size()  # position after add
+            # 3) Try to parse file_id from command argument
+            parts = message.text.strip().split(maxsplit=1)
+            if len(parts) > 1:
+                arg = parts[1].strip()
+                # If looks like a file_id (very long string) accept as file_id
+                # We'll enqueue with minimal metadata; real metadata isn't available without Telegram message object
+                track_info = {
+                    "title": "Unknown Track",
+                    "artist": "Unknown Artist",
+                    "duration": 0,
+                    "file_id": arg,
+                }
+                music_queue.add_to_queue(track_info)
+                queue_position = music_queue.queue_size()
+                await message.reply_text(
+                    f"➕ कतार में जोड़ा (स्थिति #{queue_position}):\n🎼 {track_info['title']}\n🎤 {track_info['artist']}\n\n(फ़ाइल आईडी से जोड़ा गया)",
+                )
+                return
+            # no audio found
             await message.reply_text(
-                f"➕ **Added to Queue (Position #{queue_position}):**\n\n"
-                f"🎼 Title: {track_info['title']}\n"
-                f"🎤 Artist: {track_info['artist']}"
+                "❌ कोई ऑडियो फ़ाइल नहीं मिली।\nकृपया ऑडियो संदेश को रिप्लाई करें या ऑडियो उसी संदेश में भेजें या /play <file_id> का उपयोग करें।",
             )
+            return
+
+        # If we have a pyrogram Audio object, extract metadata
+        if audio:
+            track_info = {
+                "title": getattr(audio, "title", None) or "Unknown Track",
+                "artist": getattr(audio, "performer", None) or "Unknown Artist",
+                "duration": getattr(audio, "duration", 0),
+                "file_id": getattr(audio, "file_id", None),
+            }
+
+            music_queue.add_to_queue(track_info)
+
+            if not music_queue.is_playing:
+                music_queue.is_playing = True
+                music_queue.get_next()
+                await message.reply_text(
+                    f"🎵 अब चल रहा है:\n\n🎼 शीर्षक: {track_info['title']}\n🎤 कलाकार: {track_info['artist']}\n⏱️ अवधि: {track_info['duration']}s"
+                )
+            else:
+                queue_position = music_queue.queue_size()
+                await message.reply_text(
+                    f"➕ कतार में जोड़ा (स्थिति #{queue_position}):\n🎼 {track_info['title']}\n🎤 {track_info['artist']}",
+                )
 
     @bot.on_message(filters.command("pause"))
     async def pause_handler(client, message: Message):
         """Pause music command"""
         if not music_queue.is_playing:
-            await message.reply_text("❌ No music is currently playing.")
+            await message.reply_text("❌ फिलहाल कोई संगीत चल नहीं रहा है।")
             return
 
         music_queue.is_playing = False
         await message.reply_text(
-            f"⏸️ **Music Paused**\n\n"
-            f"Currently paused: {music_queue.current_playing['title']}"
+            f"⏸️ संगीत रोक दिया गया।\n\nरुको हुआ: {music_queue.current_playing['title']}",
         )
 
     @bot.on_message(filters.command("resume"))
     async def resume_handler(client, message: Message):
         """Resume music command"""
         if music_queue.current_playing is None:
-            await message.reply_text("❌ No music to resume.")
+            await message.reply_text("❌ रिस्यूम करने के लिए कोई ट्रैक नहीं है।")
             return
 
         music_queue.is_playing = True
-        await message.reply_text(f"▶️ **Music Resumed**\n\nResumed: {music_queue.current_playing['title']}")
+        await message.reply_text(f"▶️ संगीत फिर से चालू हुआ: {music_queue.current_playing['title']}")
 
     @bot.on_message(filters.command("skip"))
     async def skip_handler(client, message: Message):
         """Skip to next track command"""
         if not music_queue.current_playing:
-            await message.reply_text("❌ No music is playing.")
+            await message.reply_text("❌ फिलहाल कोई संगीत नहीं चल रहा है।")
             return
 
         skipped_track = music_queue.current_playing
@@ -156,17 +175,17 @@ def register_music_handlers(bot):
 
         if next_track:
             await message.reply_text(
-                f"⏭️ **Skipped**\n\nSkipped: {skipped_track['title']}\n\n🎵 **Now Playing:**\n{next_track['title']} - {next_track['artist']}"
+                f"⏭️ स्किप किया गया: {skipped_track['title']}\n\n🎵 अब चल रहा है: {next_track['title']} - {next_track['artist']}",
             )
         else:
             music_queue.is_playing = False
-            await message.reply_text(f"⏭️ **Skipped**\n\nSkipped: {skipped_track['title']}\n\n📭 Queue is now empty.")
+            await message.reply_text(f"⏭️ स्किप किया गया: {skipped_track['title']}\n\n📭 कतार अब खाली है।")
 
     @bot.on_message(filters.command("stop"))
     async def stop_handler(client, message: Message):
         """Stop music command"""
         if not music_queue.is_playing and not music_queue.current_playing:
-            await message.reply_text("❌ No music is currently playing.")
+            await message.reply_text("❌ फिलहाल कोई संगीत नहीं चल रहा है।")
             return
 
         stopped_track = music_queue.current_playing
@@ -174,7 +193,7 @@ def register_music_handlers(bot):
         music_queue.is_playing = False
 
         await message.reply_text(
-            f"⏹️ **Music Stopped**\n\nStopped: {stopped_track['title']}\n🗑️ Queue cleared."
+            f"⏹️ संगीत बंद किया गया।\n\nरुका हुआ: {stopped_track['title']}\n🗑️ कतार साफ़ की गई।"
         )
 
     @bot.on_message(filters.command("queue"))
@@ -183,20 +202,20 @@ def register_music_handlers(bot):
         queue_list = music_queue.get_queue_list()
 
         if not queue_list and not music_queue.current_playing:
-            await message.reply_text("📭 Queue is empty.")
+            await message.reply_text("📭 कतार खाली है।")
             return
 
-        response = "📋 **Current Queue:**\n\n"
+        response = "📋 वर्तमान कतार:\n\n"
 
         if music_queue.current_playing:
-            response += f"🎵 **Now Playing:**\n{music_queue.current_playing['title']} - {music_queue.current_playing['artist']}\n\n"
+            response += f"🎵 अब चल रहा है:\n{music_queue.current_playing['title']} - {music_queue.current_playing['artist']}\n\n"
 
         if queue_list:
-            response += "**Upcoming:**\n"
+            response += "**आगामी:**\n"
             for idx, track in enumerate(queue_list, 1):
                 response += f"{idx}. {track['title']} - {track['artist']}\n"
         else:
-            response += "No tracks in queue."
+            response += "कतार में कोई ट्रैक नहीं है।"
 
         await message.reply_text(response)
 
@@ -204,14 +223,14 @@ def register_music_handlers(bot):
     async def current_handler(client, message: Message):
         """Show current playing track command"""
         if not music_queue.current_playing:
-            await message.reply_text("❌ No music is currently playing.")
+            await message.reply_text("❌ फिलहाल कोई संगीत नहीं चल रहा है।")
             return
 
         track = music_queue.current_playing
-        status = "▶️ Playing" if music_queue.is_playing else "⏸️ Paused"
+        status = "▶️ चल रहा है" if music_queue.is_playing else "⏸️ रुका हुआ"
 
         await message.reply_text(
-            f"{status}\n\n🎼 Title: {track['title']}\n🎤 Artist: {track['artist']}\n⏱️ Duration: {track['duration']}s"
+            f"{status}\n\n🎼 शीर्षक: {track['title']}\n🎤 कलाकार: {track['artist']}\n⏱️ अवधि: {track['duration']}s"
         )
 
     @bot.on_message(filters.command("clear"))
@@ -221,23 +240,23 @@ def register_music_handlers(bot):
         music_queue.clear_queue()
         music_queue.is_playing = False
 
-        await message.reply_text(f"🗑️ **Queue Cleared**\n\nRemoved {queue_size} tracks from queue.")
+        await message.reply_text(f"🗑️ कतार साफ़ की गई।\n\nनिकाले गए ट्रैक्स: {queue_size}")
 
     @bot.on_message(filters.command("music_help"))
     async def music_help_handler(client, message: Message):
-        """Show music commands help"""
+        """Show music commands help (Hindi)"""
         await message.reply_text(
-            "🎵 **Music Commands:**\n\n"
-            "/play - Add audio to queue (reply to audio file)\n"
-            "/pause - Pause current music\n"
-            "/resume - Resume paused music\n"
-            "/skip - Skip to next track\n"
-            "/stop - Stop music and clear queue\n"
-            "/queue - Show current queue\n"
-            "/current - Show currently playing track\n"
-            "/clear - Clear entire queue\n"
-            "/aotuplay - Toggle autoplay mode (also /autoplay)\n"
-            "/music_help - Show this help message"
+            "🎵 म्यूजिक कमांड्स:\n\n"
+            "/play - ऑडियो प्ले/क्यू (रिप्लाई करें या उसी संदेश में ऑडियो भेजें या /play <file_id>)\n"
+            "/pause - वर्तमान संगीत रोकें\n"
+            "/resume - रुका हुआ संगीत फिर से चालू करें\n"
+            "/skip - अगले ट्रैक पर जाएं\n"
+            "/stop - संगीत बंद करें और कतार साफ़ करें\n"
+            "/queue - वर्तमान कतार दिखाएँ\n"
+            "/current - वर्तमान चल रहा ट्रैक दिखाएँ\n"
+            "/clear - पूरी कतार साफ़ करें\n"
+            "/aotuplay - ऑटोप्ले टॉगल (या /autoplay)\n"
+            "/music_help - यह मदद संदेश"
         )
 
     @bot.on_message(filters.command(["aotuplay", "autoplay"]))
@@ -257,46 +276,52 @@ def register_music_handlers(bot):
             arg = parts[1].lower()
             if arg in ("on", "true", "1"):
                 music_queue.autoplay = True
-                await message.reply_text("🔁 Autoplay enabled.")
+                await message.reply_text("🔁 Autoplay सक्षम कर दिया गया है।")
                 return
             if arg in ("off", "false", "0"):
                 music_queue.autoplay = False
-                await message.reply_text("🔁 Autoplay disabled.")
+                await message.reply_text("🔁 Autoplay अक्षम कर दिया गया है।")
                 return
             if arg in ("status", "state"):
-                status = "enabled" if music_queue.autoplay else "disabled"
-                await message.reply_text(f"🔁 Autoplay is currently {status}.")
+                status = "सक्षम" if music_queue.autoplay else "अक्षम"
+                await message.reply_text(f"🔁 Autoplay वर्तमान स्थिति: {status}.")
                 return
             # unknown argument
-            await message.reply_text("❌ Unknown argument. Use: on, off, status or nothing to open buttons.")
+            await message.reply_text("❌ अज्ञात तर्क। उपयोग: on, off, status या खली छोड़ें बटन दिखाने के लिए।")
             return
 
         # No args: show inline buttons to toggle autoplay
-        status = "enabled" if music_queue.autoplay else "disabled"
+        status = "सक्षम" if music_queue.autoplay else "अक्षम"
         await message.reply_text(
-            f"🔁 Autoplay is currently *{status}*.",
-            reply_markup=_autoplay_keyboard()
+            f"🔁 Autoplay वर्तमान में *{status}* है।",
+            reply_markup=_autoplay_keyboard(),
         )
 
     @bot.on_callback_query(filters.regex(r"^autoplay:(on|off|toggle|status)$"))
     async def autoplay_callback(client, callback_query: CallbackQuery):
         """Handle autoplay inline button presses"""
+        # Debug print to console
+        try:
+            print("DEBUG: autoplay callback received:", callback_query.from_user.id, callback_query.data)
+        except Exception:
+            print("DEBUG: autoplay callback received (no user info)")
+
         data = callback_query.data or ""
         action = data.split(":", 1)[1] if ":" in data else data
 
         if action == "on":
             music_queue.autoplay = True
-            text = "🔁 Autoplay enabled."
+            text = "🔁 Autoplay सक्षम कर दिया गया है।"
         elif action == "off":
             music_queue.autoplay = False
-            text = "🔁 Autoplay disabled."
+            text = "🔁 Autoplay अक्षम कर दिया गया है।"
         elif action == "toggle":
             music_queue.autoplay = not music_queue.autoplay
-            state = "enabled" if music_queue.autoplay else "disabled"
-            text = f"🔁 Autoplay toggled — now {state}."
+            state = "सक्षम" if music_queue.autoplay else "अक्षम"
+            text = f"🔁 Autoplay टॉगल किया गया — अब {state}."
         else:  # status
-            state = "enabled" if music_queue.autoplay else "disabled"
-            text = f"🔁 Autoplay is currently {state}."
+            state = "सक्षम" if music_queue.autoplay else "अक्षम"
+            text = f"🔁 Autoplay वर्तमान स्थिति: {state}."
 
         # Acknowledge the callback to remove loading state and show alert so user notices
         try:
@@ -308,8 +333,8 @@ def register_music_handlers(bot):
         try:
             if callback_query.message:
                 await callback_query.message.edit_text(
-                    f"🔁 Autoplay is now *{'enabled' if music_queue.autoplay else 'disabled'}*.",
-                    reply_markup=_autoplay_keyboard()
+                    f"🔁 Autoplay अब *{'सक्षम' if music_queue.autoplay else 'अक्षम'}* है।",
+                    reply_markup=_autoplay_keyboard(),
                 )
         except Exception:
             # If edit fails (message deleted or too old), send a small follow-up message
