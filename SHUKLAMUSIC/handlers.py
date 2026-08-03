@@ -1,10 +1,10 @@
 """
 Music Handlers - Play, Pause, Skip, Queue Management
-Added: autoplay (aotuplay) support and command
+Added: autoplay (aotuplay) support and command + inline buttons to toggle autoplay
 """
 
 from pyrogram import filters
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from collections import deque
 import asyncio
 
@@ -56,6 +56,21 @@ class MusicQueue:
 
 # Global queue instance
 music_queue = MusicQueue()
+
+
+def _autoplay_keyboard():
+    """Return an InlineKeyboardMarkup reflecting current autoplay state"""
+    state = music_queue.autoplay
+    status_text = "ON ✅" if state else "OFF ❌"
+    buttons = [
+        [InlineKeyboardButton(f"Autoplay: {status_text}", callback_data="autoplay:status")],
+        [
+            InlineKeyboardButton("Enable 🔁", callback_data="autoplay:on"),
+            InlineKeyboardButton("Disable ⛔", callback_data="autoplay:off"),
+        ],
+        [InlineKeyboardButton("Toggle ↩️", callback_data="autoplay:toggle")]
+    ]
+    return InlineKeyboardMarkup(buttons)
 
 
 def register_music_handlers(bot):
@@ -264,31 +279,72 @@ def register_music_handlers(bot):
         """Toggle or set autoplay mode.
 
         Usage:
-        /aotuplay - toggles autoplay on/off
+        /aotuplay - shows a button UI to toggle autoplay on/off
         /aotuplay on - enable autoplay
         /aotuplay off - disable autoplay
         /aotuplay status - show current status
         """
         # parse arguments
         parts = message.text.strip().split()
-        # default: toggle
-        if len(parts) == 1:
-            music_queue.autoplay = not music_queue.autoplay
-            status = "enabled" if music_queue.autoplay else "disabled"
-            await message.reply_text(f"🔁 Autoplay {status}.")
+        # If user provides text arguments, keep existing textual behavior
+        if len(parts) > 1:
+            arg = parts[1].lower()
+            if arg in ("on", "true", "1"):
+                music_queue.autoplay = True
+                await message.reply_text("🔁 Autoplay enabled.")
+                return
+            if arg in ("off", "false", "0"):
+                music_queue.autoplay = False
+                await message.reply_text("🔁 Autoplay disabled.")
+                return
+            if arg in ("status", "state"):
+                status = "enabled" if music_queue.autoplay else "disabled"
+                await message.reply_text(f"🔁 Autoplay is currently {status}.")
+                return
+            # unknown argument
+            await message.reply_text("❌ Unknown argument. Use: on, off, status or nothing to open buttons.")
             return
-        arg = parts[1].lower()
-        if arg in ("on", "true", "1"):
+
+        # No args: show inline buttons to toggle autoplay
+        status = "enabled" if music_queue.autoplay else "disabled"
+        await message.reply_text(
+            f"🔁 Autoplay is currently *{status}*.",
+            reply_markup=_autoplay_keyboard()
+        )
+
+
+    @bot.on_callback_query(filters.regex(r"^autoplay:(on|off|toggle|status)$"))
+    async def autoplay_callback(client, callback_query: CallbackQuery):
+        """Handle autoplay inline button presses"""
+        data = callback_query.data or ""
+        action = data.split(":", 1)[1] if ":" in data else data
+
+        if action == "on":
             music_queue.autoplay = True
-            await message.reply_text("🔁 Autoplay enabled.")
-            return
-        if arg in ("off", "false", "0"):
+            text = "🔁 Autoplay enabled."
+        elif action == "off":
             music_queue.autoplay = False
-            await message.reply_text("🔁 Autoplay disabled.")
-            return
-        if arg in ("status", "state"):
-            status = "enabled" if music_queue.autoplay else "disabled"
-            await message.reply_text(f"🔁 Autoplay is currently {status}.")
-            return
-        # unknown argument
-        await message.reply_text("❌ Unknown argument. Use: on, off, status or nothing to toggle.")
+            text = "🔁 Autoplay disabled."
+        elif action == "toggle":
+            music_queue.autoplay = not music_queue.autoplay
+            state = "enabled" if music_queue.autoplay else "disabled"
+            text = f"🔁 Autoplay toggled — now {state}."
+        else:  # status
+            state = "enabled" if music_queue.autoplay else "disabled"
+            text = f"🔁 Autoplay is currently {state}."
+
+        # Acknowledge the callback to remove loading state
+        try:
+            await callback_query.answer(text)
+        except Exception:
+            pass
+
+        # Edit original message to reflect new state and keep buttons
+        try:
+            await callback_query.message.edit_text(
+                f"🔁 Autoplay is now *{'enabled' if music_queue.autoplay else 'disabled'}*.",
+                reply_markup=_autoplay_keyboard()
+            )
+        except Exception:
+            # If edit fails (message deleted or older), ignore silently
+            pass
