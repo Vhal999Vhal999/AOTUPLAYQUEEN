@@ -1,12 +1,13 @@
 """
 Music Handlers - Play, Pause, Skip, Queue Management
-Fixed: /play accepts reply-audio, same-message audio, or file_id argument. Replies translated to Hindi for play-related responses.
+Added: support to play from a Telegram message link or message id (/playmsg, /playlink)
 """
 
 from pyrogram import filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from collections import deque
 import asyncio
+import re
 
 
 class MusicQueue:
@@ -92,7 +93,6 @@ def register_music_handlers(bot):
             if len(parts) > 1:
                 arg = parts[1].strip()
                 # If looks like a file_id (very long string) accept as file_id
-                # We'll enqueue with minimal metadata; real metadata isn't available without Telegram message object
                 track_info = {
                     "title": "Unknown Track",
                     "artist": "Unknown Artist",
@@ -256,8 +256,114 @@ def register_music_handlers(bot):
             "/current - वर्तमान चल रहा ट्रैक दिखाएँ\n"
             "/clear - पूरी कतार साफ़ करें\n"
             "/aotuplay - ऑटोप्ले टॉगल (या /autoplay)\n"
+            "/playmsg या /playlink - किसी संदेश लिंक या chat_id + message_id से प्ले करें\n"
             "/music_help - यह मदद संदेश"
         )
+
+    @bot.on_message(filters.command(["playmsg", "playlink"]))
+    async def playmsg_handler(client, message: Message):
+        """Play from a telegram message link or chat_id + message_id
+
+        Usage:
+        /playlink https://t.me/username/123
+        /playlink https://t.me/c/1234567890/123
+        /playmsg @username 123
+        /playmsg -1001234567890 123
+        """
+        parts = message.text.strip().split(maxsplit=1)
+        if len(parts) < 2:
+            await message.reply_text(
+                "उपयोग: /playmsg <chat_username_or_id> <message_id>\nया /playlink <t.me लिंक>"
+            )
+            return
+
+        arg = parts[1].strip()
+
+        chat = None
+        msg_id = None
+
+        # t.me link parsing
+        m = re.match(r"https?://t.me/(?:(c)/)?(?P<chat>[^/]+)/(?P<msgid>\d+)", arg)
+        if m:
+            if m.group(1):
+                # t.me/c/<chat>/<msgid> -> internal id, need to prefix -100
+                raw = m.group('chat')
+                try:
+                    chat = int(f"-100{raw}")
+                except Exception:
+                    await message.reply_text("❌ अवैध लिंक: चैट आईडी पार्स नहीं हो पाई।")
+                    return
+            else:
+                chat_name = m.group('chat')
+                chat = chat_name if chat_name.startswith('@') else f"@{chat_name}"
+            msg_id = int(m.group('msgid'))
+        else:
+            # try: /playmsg @username 123  OR /playmsg -100123... 123
+            toks = arg.split()
+            if len(toks) == 2:
+                chat_tok, msg_tok = toks[0], toks[1]
+                try:
+                    msg_id = int(msg_tok)
+                except Exception:
+                    await message.reply_text("❌ अवैध message_id।")
+                    return
+                # chat id or username
+                if (chat_tok.lstrip('-').isdigit()):
+                    try:
+                        chat = int(chat_tok)
+                    except Exception:
+                        await message.reply_text("❌ अवैध चैट आईडी।")
+                        return
+                else:
+                    chat = chat_tok if chat_tok.startswith('@') else f"@{chat_tok}"
+            else:
+                await message.reply_text(
+                    "उपयोग: /playmsg <chat_username_or_id> <message_id>\nया /playlink <t.me लिंक>"
+                )
+                return
+
+        # Fetch the message
+        try:
+            target_msg = await client.get_messages(chat, msg_id)
+        except Exception as e:
+            await message.reply_text(f"❌ संदेश प्राप्त करने में त्रुटि: {e}")
+            return
+
+        if not target_msg:
+            await message.reply_text("❌ संदेश नहीं मिला।")
+            return
+
+        # Find audio in the fetched message
+        audio_obj = getattr(target_msg, 'audio', None) or getattr(target_msg, 'voice', None)
+        if not audio_obj:
+            doc = getattr(target_msg, 'document', None)
+            if doc and getattr(doc, 'mime_type', '').startswith('audio'):
+                audio_obj = doc
+
+        if not audio_obj:
+            await message.reply_text("❌ उस संदेश में ऑडियो नहीं मिला।")
+            return
+
+        track_info = {
+            "title": getattr(audio_obj, 'title', None) or 'Unknown Track',
+            "artist": getattr(audio_obj, 'performer', None) or 'Unknown Artist',
+            "duration": getattr(audio_obj, 'duration', 0) or 0,
+            "file_id": getattr(audio_obj, 'file_id', None) or getattr(audio_obj, 'file_unique_id', None),
+        }
+
+        music_queue.add_to_queue(track_info)
+
+        if not music_queue.is_playing:
+            music_queue.is_playing = True
+            music_queue.get_next()
+            await message.reply_text(
+                f"🎵 अब चल रहा है (message से):\n\n🎼 शीर्षक: {track_info['title']}\n🎤 कलाकार: {track_info['artist']}"
+            )
+        else:
+            queue_position = music_queue.queue_size()
+            await message.reply_text(
+                f"➕ कतार में जोड़ा (स्थिति #{queue_position}):\n🎼 {track_info['title']}\n🎤 {track_info['artist']}\n\n(संदेश से जोड़ा गया)"
+            )
 
     @bot.on_message(filters.command(["aotuplay", "autoplay"]))
     async def aotuplay_handler(client, message: Message):
