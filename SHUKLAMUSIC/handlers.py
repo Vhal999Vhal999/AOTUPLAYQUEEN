@@ -1,6 +1,6 @@
 """
 Music Handlers - Play, Pause, Skip, Queue Management
-Integrate playback with SHUKLA (pytgcalls) so /play actually streams to group voice chat.
+Final fixes: improved /play reliability, preflight checks (assistant sessions, ffmpeg), better downloads handling and clearer error messages/logging.
 """
 
 from pyrogram import filters
@@ -9,6 +9,8 @@ from collections import deque
 import asyncio
 import os
 import re
+import shutil
+import config
 
 # Import SHUKLA core player
 from SHUKLAMUSIC import SHUKLA, app
@@ -85,6 +87,14 @@ def _autoplay_keyboard():
     return InlineKeyboardMarkup(buttons)
 
 
+def _has_any_assistant():
+    return any(bool(getattr(config, f"STRING{i}", None)) for i in range(1, 8))
+
+
+def _ffmpeg_available():
+    return shutil.which("ffmpeg") is not None
+
+
 def register_music_handlers(bot):
     """Register all music command handlers"""
 
@@ -94,35 +104,60 @@ def register_music_handlers(bot):
 
         Integrates with SHUKLA (pytgcalls) to stream into the voice chat of the current chat.
         """
+        # Preflight checks
+        if not _has_any_assistant():
+            await message.reply_text(
+                "❌ कोई assistant session कॉन्फ़िगर नहीं मिली (STRING_SESSION). कृपया config में STRING_SESSION भरें और बोट रिस्टार्ट करें।"
+            )
+            return
+
+        if not _ffmpeg_available():
+            await message.reply_text(
+                "❌ ffmpeg सिस्टम पर उपलब्ध नहीं है। कृपया ffmpeg इंस्टॉल करें और फिर से प्रयास करें (उदा: sudo apt install ffmpeg)।"
+            )
+            return
+
         audio = None
         chat_id = message.chat.id
 
-        # 1) Reply to a message with audio
-        if message.reply_to_message and getattr(message.reply_to_message, "audio", None):
-            audio = message.reply_to_message.audio
+        # 1) Reply to a message with audio/voice/document
+        if message.reply_to_message:
+            rpt = message.reply_to_message
+            audio = getattr(rpt, "audio", None) or getattr(rpt, "voice", None) or getattr(rpt, "document", None)
+            # accept documents if mime_type indicates audio
+            if getattr(audio, 'mime_type', None) and not audio.mime_type.startswith('audio'):
+                audio = None
+
         # 2) Audio sent in the same message
-        elif getattr(message, "audio", None):
-            audio = message.audio
-        else:
-            # 3) Try to parse file_id from command argument
+        if not audio:
+            audio = getattr(message, "audio", None) or getattr(message, "voice", None) or getattr(message, 'document', None)
+            if getattr(audio, 'mime_type', None) and not audio.mime_type.startswith('audio'):
+                audio = None
+
+        # 3) file_id from argument
+        if not audio:
             parts = message.text.strip().split(maxsplit=1)
             if len(parts) > 1:
                 arg = parts[1].strip()
-                # Accept file_id — but we'll try to download/play it directly
+                # create a minimal object with file_id
                 audio = type("A", (), {"file_id": arg, "title": None, "performer": None, "duration": 0})()
-            else:
-                await message.reply_text(
-                    "❌ कोई ऑडियो फ़ाइल नहीं मिली।\nकृपया ऑडियो संदेश को रिप्लाई करें या ऑडियो उसी संदेश में भेजें या /play <file_id> का उपयोग करें।",
-                )
-                return
 
-        # Ensure downloads dir
+        if not audio:
+            await message.reply_text(
+                "❌ कोई ऑडियो फ़ाइल नहीं मिली।\nकृपया ऑडियो संदेश को रिप्लाई करें या ऑडियो उसी संदेश में भेजें या /play <file_id> का उपयोग करें।",
+            )
+            return
+
         dl_dir = _ensure_download_dir()
 
-        # Try downloading the media locally so PyTgCalls can stream it
+        # Download media — let pyrogram decide filename inside downloads dir
         try:
-            file_path = await client.download_media(audio.file_id, file_name=os.path.join(dl_dir, f"{audio.file_id}.mp3"))
+            await message.reply_text("⏳ फ़ाइल डाउनलोड हो रही है, कृपया प्रतीक्षा करें...")
+            print(f"DEBUG: starting download for file_id={getattr(audio, 'file_id', None)}")
+            file_path = await client.download_media(audio.file_id, file_name=dl_dir)
+            print(f"DEBUG: download done: {file_path}")
         except Exception as e:
+            print("ERROR: download failed:", e)
             await message.reply_text(f"❌ फ़ाइल डाउनलोड करने में त्रुटि: {e}")
             return
 
@@ -135,27 +170,25 @@ def register_music_handlers(bot):
             "file_id": getattr(audio, "file_id", None),
         }
 
-        # Add to local queue
         music_queue.add_to_queue(track_info)
 
         # If not playing, attempt to join voice chat and play using SHUKLA
         if not music_queue.is_playing:
-            # Try to start streaming into the chat's voice chat
             try:
-                # SHUKLA.join_call(chat_id, original_chat_id, link, video=False)
+                await message.reply_text("🔊 प्लेबैक शुरू किया जा रहा है...")
+                print(f"DEBUG: attempt join_call chat={chat_id} file={file_path}")
                 await SHUKLA.join_call(chat_id, chat_id, track_info["file_path"], video=False)
                 music_queue.is_playing = True
                 music_queue.get_next()
                 await message.reply_text(
                     f"🎵 अब चल रहा है:\n\n🎼 शीर्षक: {track_info['title']}\n🎤 कलाकार: {track_info['artist']}\n⏱️ अवधि: {track_info['duration']}s"
                 )
+                print("DEBUG: join_call succeeded")
             except Exception as e:
-                # Common reasons: no active group call, no assistant sessions configured
+                print("ERROR: join_call failed:", e)
                 await message.reply_text(
-                    "❌ प्लेबैक शुरू नहीं हो सका। कृपया सुनिश्चित करें कि: \n"
-                    "1) आपने सहायक सत्र (STRING_SESSION) कॉन्फ़िगर किए हैं।\n"
-                    "2) लक्षित समूह में वॉइस चैट गतिविधि (voice chat) चालू है।\n"
-                    f"त्रुटि: {e}",
+                    "❌ प्लेबैक शुरू नहीं हो सका। कृपया सुनिश्चित करें कि आपकी assistant session सही है और लक्षित समूह में वॉइस चैट चालू है।\n"
+                    f"त्रुटि विवरण: {e}"
                 )
                 # reset playing state
                 music_queue.is_playing = False
@@ -166,8 +199,7 @@ def register_music_handlers(bot):
                 f"➕ कतार में जोड़ा (स्थिति #{queue_position}):\n🎼 {track_info['title']}\n🎤 {track_info['artist']}"
             )
 
-    # other handlers remain unchanged (pause/resume/skip/stop/queue/current/clear/music_help/aotuplay etc.)
-    # For brevity, import the rest of the file's existing handlers below (kept unchanged)
+    # (The rest of handlers — pause/resume/skip/stop/queue/current/clear/music_help/aotuplay/callbacks — remain as previously implemented.)
 
     @bot.on_message(filters.command("pause"))
     async def pause_handler(client, message: Message):
@@ -197,11 +229,11 @@ def register_music_handlers(bot):
             next_track = music_queue.get_next()
             music_queue.is_playing = True
         if next_track:
-            # attempt to play next_track via SHUKLA
             try:
                 await SHUKLA.join_call(message.chat.id, message.chat.id, next_track['file_path'], video=False)
                 await message.reply_text(f"⏭️ अब चल रहा है: {next_track['title']} - {next_track['artist']}")
             except Exception as e:
+                print("ERROR: skip join_call failed:", e)
                 await message.reply_text(f"❌ अगला ट्रैक प्ले नहीं हो सका: {e}")
         else:
             music_queue.is_playing = False
@@ -215,7 +247,6 @@ def register_music_handlers(bot):
         stopped_track = music_queue.current_playing
         music_queue.clear_queue()
         music_queue.is_playing = False
-        # ask SHUKLA to leave the call
         try:
             await SHUKLA.stop_stream(message.chat.id)
         except Exception:
