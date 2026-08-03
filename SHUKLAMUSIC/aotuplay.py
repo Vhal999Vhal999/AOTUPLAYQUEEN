@@ -32,7 +32,7 @@ class AotuplayBot:
                 "aotuplay_bot",
                 api_id=API_ID,"29308061"
                 api_hash=API_HASH,"462de3dfc98fd938ef9c6ee31a72d099"
-                bot_token=BOT_TOKEN"7637197122:AAHuPZoodC9aMVmiZ1BpEOuiHcaaAyP1-UE
+                bot_token=BOT_TOKEN"7637197122:AAHuPZoodC9aMVmiZ1BpEOuiHcaaAyP1-UE"
             )
             logger.info("✅ Bot client initialized successfully")
         except Exception as e:
