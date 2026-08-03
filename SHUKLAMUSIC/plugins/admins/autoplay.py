@@ -18,6 +18,8 @@ from SHUKLAMUSIC.core.call import SHUKLA
 from config import BANNED_USERS
 import os
 import subprocess
+from SHUKLAMUSIC.misc import db
+from SHUKLAMUSIC.utils.stream.autoclear import auto_clean
 
 
 @app.on_message(filters.command(["autoplay", "ap"]) & filters.group & ~BANNED_USERS)
@@ -150,3 +152,23 @@ async def play_autoplay_wrapper(client, message: Message, _, chat_id):
         await message.reply_text("▶️ autoplay.py started on the server (background process).")
     except Exception as e:
         await message.reply_text(f"Failed to start autoplay.py: {e}")
+
+
+@app.on_message(filters.command(["skipnext", "skipn", "skip_next"]) & filters.group & ~BANNED_USERS)
+@AdminRightsCheck
+async def skip_next(client, message: Message, _, chat_id):
+    """Remove the next queued track (skip the upcoming song) without stopping the current stream."""
+    try:
+        check = db.get(chat_id)
+        if not check or len(check) < 2:
+            return await message.reply_text("There is no next track in the queue to skip.")
+        # pop the next item (index 1)
+        skipped = check.pop(1)
+        try:
+            await auto_clean(skipped)
+        except Exception:
+            pass
+        title = skipped.get("title") or str(skipped.get("file"))
+        await message.reply_text(f"⏭️ Skipped next track: {title}")
+    except Exception as e:
+        await message.reply_text(f"Failed to skip next track: {e}")
