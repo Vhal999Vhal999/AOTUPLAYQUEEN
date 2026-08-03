@@ -1,3 +1,4 @@
+pyrogram
 aiofiles
 aiohttp
 apscheduler
@@ -55,5 +56,3 @@ wget
 telethon
 yt-dlp>=2026.06.09
 youtube-search-python
-
-
